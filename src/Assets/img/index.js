@@ -8,6 +8,7 @@ import IconUser from './iconUser.png'
 import IconPhone from './iconPhone.png'
 import IconNotif from './iconNotif.png'
 import IconBantuan from './iconBantuan.png'
+import IconBantuan2 from './iconBantuan2.png'
 
 import DefaultProfile from './defaultProfile.png'
 import DefaultProfileSquare from './defaultProfileSquare.png'
@@ -18,6 +19,10 @@ import ShowOff from './showOff.png'
 
 import InsertPhoneNumber from './insertPhoneNumber.png'
 import InsertOtp from './insertOtp.png'
+
+import UploadFoto from './Foto.png'
+import FotoKTP    from './fotoKtp.png';
+
 
 export {
   Logo,
@@ -35,5 +40,8 @@ export {
   DefaultProfile,
   DefaultProfileSquare,
   IconBantuan,
+  IconBantuan2,
   RightRedArrowTail,
+  UploadFoto,
+  FotoKTP,
 };

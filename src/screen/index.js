@@ -3,6 +3,8 @@ import Login from './Login';
 import Otp from './Otp';
 import Home from './Home';
 import Profile from './Profile';
+import NewBantuan from './NewBantuan';
+import Status from './NewBantuan/Status';
 
 export {
     Splash,
@@ -10,4 +12,6 @@ export {
     Otp,
     Home,
     Profile,
+    NewBantuan,
+    Status,
 }

@@ -6,6 +6,8 @@ import {
     Otp,
     Home,
     Profile,
+    NewBantuan,
+    Status,
 } from '../screen'
 
 const Stack = createStackNavigator();
@@ -36,6 +38,16 @@ const Router =({navigation})=>{
         <Stack.Screen
           name="Profile"
           component={Profile}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="NewBantuan"
+          component={NewBantuan}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Status"
+          component={Status}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

@@ -1,16 +1,22 @@
 import React, { useState } from "react";
-import {View, Text, StyleSheet, Image, StatusBar, SafeAreaView, TouchableOpacity, TextInput} from 'react-native'
+import {View, Text, StyleSheet, Image, StatusBar, SafeAreaView, TouchableOpacity, TextInput, ScrollView} from 'react-native'
 import {
   DefaultProfile,
   DefaultProfileSquare,
   IconNotif,
   IconBantuan,
   RightRedArrowTail,
+  IconBantuan2,
 } from "../../Assets/img";
 import {colors, fontFam} from '../../Assets/colors';
+import axios from "axios";
+import { BASE_URL } from "../../service";
 
-const Home =({navigation})=>{
+const Home =({navigation, route})=>{
 const [code,setCode]= useState()
+
+const {datauser} = route.params
+console.log(datauser)
 
 const data = {
   kode : '#DSDBFJDSBFS3746',
@@ -20,6 +26,16 @@ const data = {
   status : 'Onprogress',
   penerima : 'Warga Miskin'
 }
+
+// const searchByCode = (x) => {
+//   axios
+//     .get(`${BASE_URL}/bantuan/${x}`)
+//     .then((res) => {
+//       console.log(res.data);
+//     })
+
+//     .catch((err) => console.log(err));
+// };
 
     const Header = (props)=>{
         return (
@@ -126,6 +142,18 @@ const data = {
             textAlign: "center",
           },
         });
+
+        const [code, setCode] = useState();
+        const searchByCode = () => {
+          axios
+            .get(`${BASE_URL}/bantuan/${code}`)
+            .then((res) => {
+              console.log(res)
+            })
+
+            .catch((err) => console.log(err));
+        };
+
         return (
           <View style={s.body}>
             <Text style={s.title}>Lacak bantuan</Text>
@@ -136,11 +164,11 @@ const data = {
               <TextInput
               placeholder="Cari Bantuan"
               style={{width:'85%'}}
-              value={props.value}
-              onChangeText={props.onChangeText}
+              value={code}
+              onChangeText={(text)=>setCode(text)}
               />
               <TouchableOpacity 
-              onPress={props.onPress}
+              onPress={()=>searchByCode()}
               style={{width:'15%', backgroundColor:colors.main, borderRadius:30,}}>
                 <Image source={IconNotif} style={{width:40, height:40,alignSelf:'center'}}/>
               </TouchableOpacity>
@@ -244,53 +272,63 @@ return (
       </TouchableOpacity>
     </View>
   </View>
-);
-}
+);}
 
 
 return (
   <SafeAreaView style={{ backgroundColor: colors.main }}>
     <StatusBar hidden={true} />
-    <Header
-      onProfile={() => {
-        navigation.navigate("Profile");
-      }}
-      // onNotif={()=>{}}
-      name="litha"
-      role="kabinda"
-    />
-    <View style={s.body}>
-      <LacakContainer
-        value={code}
-        onChangeText={(text) => {
-          setCode(text);
+    <ScrollView>
+      <Header
+        onProfile={() => {
+          navigation.navigate("Profile");
         }}
-        // onPress={()=>{}}
+        // onNotif={()=>{}}
+        name={datauser?datauser.username:'litha'}
+        role={datauser?datauser.role : 'relawan'}
       />
-      <View style={s.historyContainer}>
-        <View style={{ display: "flex", flexDirection: "row", width: "100%" }}>
-          <View style={{ width: "75%" }}>
-            <Text style={s.historyTitle}>Riwayat Bantuan</Text>
-            <Text
-              style={[s.historyTitle, { fontSize: 12, fontWeight: "normal" }]}
-            >
-              Aktivitas Laporan Bantuan
-            </Text>
-          </View>
-          <TouchableOpacity style={{ width: "25%" }}>
-            <Text style={s.seeMore}>Lihat Semua</Text>
+      <View style={s.body}>
+        <LacakContainer />
+        <View style={s.historyContainer}>
+          <View style={s.newBantuan}>
+            <Image source={IconBantuan2}
+            style={{
+              width:'30%',
+              height:'35%',
+              alignSelf:'center',
+            }} />
+            <Text style={s.titleNewBantuan}>Antar</Text>
+            <Text style={s.descNewBantuan}>Buat laporan bantuanmu</Text>
+          <TouchableOpacity style={s.btn} onPress={()=>navigation.navigate('NewBantuan')}>
+            <Text style={s.textBtn}>Mulai Antar Bantuan</Text>
           </TouchableOpacity>
+          </View>
+          <View
+            style={{ display: "flex", flexDirection: "row", width: "100%" , marginTop:'5%'}}
+          >
+            <View style={{ width: "75%" }}>
+              <Text style={s.historyTitle}>Riwayat Bantuan</Text>
+              <Text
+                style={[s.historyTitle, { fontSize: 12, fontWeight: "normal" }]}
+              >
+                Aktivitas Laporan Bantuan
+              </Text>
+            </View>
+            <TouchableOpacity style={{ width: "25%" }}>
+              <Text style={s.seeMore}>Lihat Semua</Text>
+            </TouchableOpacity>
+          </View>
+          <CardBantuan
+            title={data.judul}
+            startDate={data.startDate}
+            endDate={data.endDate}
+            penerima={data.penerima}
+            status={data.status}
+            kode={data.kode}
+          />
         </View>
-        <CardBantuan 
-        title={data.judul}
-        startDate={data.startDate}
-        endDate={data.endDate}
-        penerima={data.penerima}
-        status={data.status}
-        kode ={data.kode}
-        />
       </View>
-    </View>
+    </ScrollView>
   </SafeAreaView>
 );
 }
@@ -321,5 +359,45 @@ const s = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: colors.main,
+  },
+  newBantuan: {
+    backgroundColor: colors.lightGrey,
+    width: "96%",
+    height:'45%',
+    marginHorizontal: "2%",
+    borderRadius: 15,
+    padding: 15,
+  },
+  titleNewBantuan: {
+    fontFamily: fontFam,
+    fontSize: 45,
+    // fontWeight:'bold',
+    textAlign: "center",
+    color: colors.black,
+    width: "100%",
+  },
+  descNewBantuan: {
+    fontFamily: fontFam,
+    fontSize: 20,
+    // fontWeight:'bold',
+    textAlign: "center",
+    color: colors.black,
+    width: "100%",
+  },
+  btn: {
+    width: "100%",
+    height: 50,
+    backgroundColor: colors.main,
+    borderRadius: 20,
+    padding: 5,
+    justifyContent: "center",
+    marginTop:20,
+  },
+  textBtn: {
+    fontFamily: fontFam,
+    fontSize: 14,
+    fontWeight: "bold",
+    color: colors.white,
+    textAlign: "center",
   },
 });
