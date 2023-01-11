@@ -153,8 +153,8 @@ const Login =({navigation, route})=>{
                 <TouchableOpacity
                   style={s.btnLogin}
                   onPress={() => {
-                    // LoginHandler();
-                    navigation.navigate("Home", {datauser: null});
+                    LoginHandler();
+                    // navigation.navigate("Home", {datauser: null});
                   }}
                 >
                   <Text style={s.textBtnLogin}>Login</Text>
