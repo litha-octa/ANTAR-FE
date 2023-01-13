@@ -10,7 +10,7 @@ import {
 import {colors, fontFam} from '../../Assets/colors'
 import { BASE_URL } from "../../service";
 import axios from "axios";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Login =({navigation, route})=>{
     const [email, setEmail] = useState(null)
@@ -36,15 +36,16 @@ const Login =({navigation, route})=>{
          .then((res)=>{
           console.log(res.data.success)
           if(res.data.success === true){
-              // const storeData = async (key, value) => {
-              //   try {
-              //     await AsyncStorage.setItem(key, value);
-              //   } catch (e) {
-              //     console.log(e);
-              //   }
-              // };
-              // storeData("username", res.data.result.data.username);
-              // storeData("role", res.data.result.data.role);
+              const storeData = async (key, value) => {
+                try {
+                  await AsyncStorage.setItem(key, value);
+                } catch (e) {
+                  console.log(e);
+                }
+              };
+              storeData("username", res.data.result.data.username)
+              storeData("role", res.data.result.data.role)
+              storeData("id", res.data.result.data.id.toString())
             navigation.navigate("Home", {
               datauser: res.data.result.data
             });

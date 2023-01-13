@@ -23,6 +23,10 @@ import InsertOtp from './insertOtp.png'
 import UploadFoto from './Foto.png'
 import FotoKTP    from './fotoKtp.png';
 
+import BtnPlusRed from './btnPlusRed.png'
+import BtnMinRed from './btnMinRed.png'
+import BtnMinGrey from './btnMinGrey.png'
+
 
 export {
   Logo,
@@ -44,4 +48,7 @@ export {
   RightRedArrowTail,
   UploadFoto,
   FotoKTP,
+  BtnMinGrey,
+  BtnMinRed,
+  BtnPlusRed,
 };
