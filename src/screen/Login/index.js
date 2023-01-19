@@ -36,6 +36,7 @@ const Login =({navigation, route})=>{
          .then((res)=>{
           console.log(res.data.success)
           if(res.data.success === true){
+
               const storeData = async (key, value) => {
                 try {
                   await AsyncStorage.setItem(key, value);
@@ -46,9 +47,14 @@ const Login =({navigation, route})=>{
               storeData("username", res.data.result.data.username)
               storeData("role", res.data.result.data.role)
               storeData("id", res.data.result.data.id.toString())
-            navigation.navigate("Home", {
-              datauser: res.data.result.data
-            });
+              if(res.data.result.data.isVerify === 0){
+                navigation.navigate("Otp", {
+                  currentPhone: res.data.result.data.phone,
+                });
+              }else{
+                navigation.navigate('Home')
+              }
+            
           }
          })
          .catch((err)=>{
@@ -155,6 +161,9 @@ const Login =({navigation, route})=>{
                   style={s.btnLogin}
                   onPress={() => {
                     LoginHandler();
+                    // navigation.navigate("Otp", {
+                    //   currentPhone: phone
+                    // });
                     // navigation.navigate("Home", {datauser: null});
                   }}
                 >

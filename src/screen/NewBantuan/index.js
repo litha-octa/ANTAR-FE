@@ -21,6 +21,7 @@ import Checkbox from "expo-checkbox";
 import axios from "axios";
 import { BASE_URL } from "../../service";
 import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const NewBantuan = ({navigation})=>{
   const [penerima,setPenerima]= useState({
@@ -29,11 +30,22 @@ const NewBantuan = ({navigation})=>{
     address:'',
     phone:'',
     profession:'',
-    famMember:0,
-    otherMember:0,
+    famMember:'',
+    otherMember:'',
     imgFaceWId:'',
     imgID:'',
   })
+
+  const [id,setId] = useState(null)
+  const [code, setCode] = useState(null);
+  const [nik, setNik] = useState(null);
+  const [name, setName] = useState(null);
+  const [address, setAddress] = useState(null);
+  const [phone, setPhone] = useState(null);
+  const [profession, setProfession] = useState(null);
+  const [famMember, setFamMember] = useState(null);
+  const [otherMember, setOtherMember] = useState(null);
+  
 
   const [bantuan, setBantuan] = useState({
     code: "",
@@ -47,12 +59,17 @@ const NewBantuan = ({navigation})=>{
     finish_date:'',
   });
 
-  // const [famMember, setFamMember] = useState(0)
-  const kode = 'BANTUAN001'
-  const [check, setCheck] = useState(true)
+  const [title, setTitle] = useState(null)
+  const [selectedJenis, setSelectedJenis] = useState(1);
+  const [status,setStatus] = useState(false)
+  const [kategori,setKategori] = useState(null)
+  const [note,setNote] = useState(null)
+  const [img,setImg] = useState(null)
+  const [start,setStart] = useState(null)
+  const [finish, setFinish] = useState(null)
+
 
   const [jenis,setJenis]= useState(null)
-  const [selectedJenis, setSelectedJenis] = useState()
 
   const getJenis = ()=>{
   axios.get(`${BASE_URL}/jenis`)
@@ -69,45 +86,127 @@ const NewBantuan = ({navigation})=>{
     }else{return}
   },[])
 
-  const AddPenerima = () =>{
-      axios({
-        method: "POST",
-        url: `${BASE_URL}/bantuan/penerima`,
-        data: {
-          code: bantuan.code,
-          nik: penerima.nik,
-          name: penerima.name,
-          addressInId: penerima.address,
-          address: penerima.address,
-          phone: penerima.phone,
-          profession: penerima.profession,
-          familyMember: penerima.famMember,
-          otherMember: penerima.otherMember,
-          selfieWithId: null,
-          ktp:null,
-        },
-      })
-      .then((res)=>{
-        console.log(res.data)
-      })
-      .catch((err)=>{console.log(err)})
+  const handlerPenerima = () =>{
+    let formData = new FormData();
+    formData.append("code",code)
+    formData.append("nik", nik)
+    formData.append("name", name)
+    formData.append("phone", phone)
+    formData.append("addressInId", address)
+    formData.append("address", address)
+    formData.append("profession", profession)
+    formData.append("familyMember", famMember)
+    formData.append("otherMember", otherMember)
+    // formData.append('selfieWithId', 'test');
+    // formData.append('ktp', 'tess')
+         
+    var config = {
+       method: 'POST',
+       body: formData,
+       redirect: 'follow',
+     };    
+        // axios({
+        //   method: "POST",
+        //   url: `${BASE_URL}/bantuan/penerima`,
+        //   headers: {
+        //     "Access-Control-Allow-Origin": "*",
+        //     "Content-Type": "multipart/form-data",
+        //     "Accept": "*/*",
+        //   },
+        //   withCredentials:false,
+        //   data: formData,
+        // })
+
+        fetch(`${BASE_URL}/bantuan/penerima`,config)
+          .then((res) => {
+            console.log("PENERIMA BANTUAN >>>>>>>", res);
+            console.log(BASE_URL);
+          })
+          .catch((error) => {
+            console.log(error);
+            console.error(error.response.data);
+          });
   } 
+const relawanHandler = (x) =>{
+  axios({
+    method: "POST",
+    url: `${BASE_URL}/bantuan/relawan`,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Type": "application/json; charset=UTF-8",
+      'Accept': '*/*'
+    },
+    withCredentials: false,
+    data: {
+      code: code,
+      id: x,
+    },
+  })
+    .then((res) => {
+      console.log(res.data);
+    })
+    .catch((err) => {
+      console.error(err.response.data);
+    });
+      }
+
+
+
    
   const DetailBantuan = ()=>{
-axios({
-  method: "POST",
-  url: `${BASE_URL}/bantuan/penerima`,
-  data: bantuan,
-})
+    let formData = new FormData();
+    formData.append("code", code);
+    formData.append("title", title);
+    formData.append("id_jenis", selectedJenis);
+    formData.append("status", status);
+    formData.append("kategori", kategori);
+    formData.append("catatan", note);
+    // formData.append("img", img);
+    formData.append("start_date", start);
+    formData.append("finish_date", finish);
+    var config = {
+       method: 'POST',
+       body: formData,
+       redirect: 'follow',
+     }; 
+// axios({
+//   method: "POST",
+//   url: `${BASE_URL}/bantuan/create`,
+//   headers: {
+//     "Access-Control-Allow-Origin": "*",
+//     "Content-Type": "multipart/form-data",
+//     Accept: "*/*",
+//   },
+//   withCredentials: false,
+//   data: formData,
+// })
+
+fetch(`${BASE_URL}/bantuan/create`,config)
   .then((res) => {
-    console.log(res.data);
+    console.log("DETAIL BANTUAN >>>>>>", res.data);
   })
   .catch((err) => {
-    console.log(err);
+    console.log(err.response.data);
   });
   }
 
-    return ( 
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem("id");
+      if (value !== null) {
+        console.log(typeof(value))
+        const int = parseInt(value)
+        console.log(typeof(int))
+        setId(parseInt(value))
+        DetailBantuan()
+        // handlerPenerima()
+        relawanHandler(parseInt(value))
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+    return (
       <View style={s.body}>
         <ScrollView>
           <View style={s.header}>
@@ -122,42 +221,43 @@ axios({
             <Text style={s.itemData}>Nama Penerima</Text>
             <TextInput
               style={s.inputText}
-              value={penerima.name}
+              value={name}
               onChangeText={(text) => {
-                setPenerima({ ...penerima, name: text });
+                setName(text);
               }}
             />
             <Text style={s.itemData}>Alamat Sesuai KTP</Text>
 
             <TextInput
               style={s.inputText}
-              value={penerima.address}
+              value={address}
               onChangeText={(text) => {
-                setPenerima({ ...penerima, address: text });
+                setAddress(text);
               }}
             />
             <Text style={s.itemData}>Pekerjaan</Text>
             <TextInput
               style={s.inputText}
-              value={penerima.profession}
+              value={profession}
               onChangeText={(text) => {
-                setPenerima({ ...penerima, profession: text });
+                setProfession(text);
               }}
             />
             <Text style={s.itemData}>No KTP</Text>
             <TextInput
               style={s.inputText}
-              value={penerima.nik}
+              value={nik}
               onChangeText={(text) => {
-                setPenerima({ ...penerima, nik: text });
+                setNik(text);
               }}
+              keyboardType="numeric"
             />
             <Text style={s.itemData}>No HP</Text>
             <TextInput
               style={s.inputText}
-              value={penerima.phone}
+              value={phone}
               onChange={(text) => {
-                setPenerima({ ...penerima, phone: text });
+                setPhone(text);
               }}
               keyboardType="numeric"
             />
@@ -207,44 +307,61 @@ axios({
               style={{ height: 50, width: "50%" }}
               mode={"dialog"}
               onValueChange={(itemValue) => {
-                setBantuan({...bantuan, id_jenis:itemValue});
+                setSelectedJenis(itemValue);
               }}
             >
               {jenis
                 ? jenis.map((item) => {
-                    return <Picker.Item label={item.nama} value={item.id} />;
+                    return <Picker.Item label={item.nama} value={item.id} key={item.id}/>;
                   })
                 : null}
             </Picker>
 
             <Text style={s.itemData}>Kode Bantuan</Text>
-            <TextInput style={s.inputText} value={bantuan.code} 
-            onChangeText={(text)=>{setBantuan({...bantuan, code :text})}}
+            <TextInput
+              style={s.inputText}
+              value={code}
+              onChangeText={(text) => {
+                setCode(text);
+              }}
+            />
+            <Text style={s.itemData}>Judul Bantuan</Text>
+            <TextInput
+              style={s.inputText}
+              value={title}
+              onChangeText={(text) => {
+                setTitle(text);
+              }}
             />
             <Text style={s.itemData}>Kategori Bantuan</Text>
-            <TextInput style={s.inputText} 
-            value={bantuan.kategori}
-                  onChangeText={(text)=>{setBantuan({...bantuan, kategori :text})}}
+            <TextInput
+              style={s.inputText}
+              value={kategori}
+              onChangeText={(text) => {
+                setKategori(text);
+              }}
             />
             <Text style={s.titleWhiteCon}>Foto Depan Stiker</Text>
             <View
               style={{ display: "flex", flexDirection: "row", width: "100%" }}
             >
               <Text style={{ width: "30%", marginLeft: "10%" }}>
-                {check === true ? "Terkonfirmasi" : "Non Konfirmasi"}
+                {status === true ? "Terkonfirmasi" : "Non Konfirmasi"}
               </Text>
               <Checkbox
                 style={{ marginHorizontal: 10 }}
-                onValueChange={(value) => {
-                  // setCheck(!check);
-                  setBantuan({...bantuan, status : value})
+                onValueChange={() => {
+                  setStatus(!status);
                 }}
-                value={bantuan.status}
+                value={status}
               />
+              {/* <TextInput 
+              placeholder="status"
+              onChangeText={(text)=>setStatus(text)} value={status}/> */}
             </View>
-            <View style={check === true ? null : { display: "none" }}>
+            <View style={status === true ? null : { display: "none" }}>
               <Image
-                source={UploadFoto}
+                source={img!== null ? {uri:img}  : UploadFoto}
                 style={{
                   width: 150,
                   height: 150,
@@ -263,9 +380,7 @@ axios({
               </Text>
             </View>
 
-            <View
-              style={s.memberContainer}
-            >
+            <View style={s.memberContainer}>
               <Text style={{ width: "55%" }}>Jumlah Anggota Keluarga : </Text>
               {/* <TouchableOpacity
                 onPress={() => setFamMember(famMember-1 )}
@@ -276,10 +391,10 @@ axios({
                 />
               </TouchableOpacity> */}
               <TextInput
-                value={penerima.famMember}
+                value={famMember}
                 placeholder="Jumlah Anggota Keluarga"
                 onChangeText={(text) => {
-                  setPenerima({ ...penerima, famMember: text });
+                  setFamMember(text);
                 }}
                 keyboardType="numeric"
                 style={{ fontWeight: "bold" }}
@@ -290,9 +405,7 @@ axios({
                 <Image source={BtnPlusRed} style={s.btnPlusMin} />
               </TouchableOpacity> */}
             </View>
-            <View
-              style={s.memberContainer}
-            >
+            <View style={s.memberContainer}>
               <Text style={{ width: "55%" }}>Jumlah Penghuni Baru : </Text>
               {/* <TouchableOpacity
                 onPress={() => setFamMember(famMember-1 )}
@@ -303,10 +416,10 @@ axios({
                 />
               </TouchableOpacity> */}
               <TextInput
-                value={penerima.otherMember}
+                value={otherMember}
                 placeholder="Jumlah Penghuni Baru"
                 onChangeText={(text) => {
-                  setPenerima({ ...penerima, otherMember: text });
+                  setOtherMember(text);
                 }}
                 keyboardType="numeric"
                 style={{ fontWeight: "bold" }}
@@ -324,14 +437,20 @@ axios({
               numberOfLines={6}
               style={s.catatanInput}
               placeholder="Ketuk Untuk Memberikan Catatan"
-              value={bantuan.catatan}
-              onChangeText={(text)=>{setBantuan({...bantuan, catatan : text})}}
+              value={note}
+              onChangeText={(text) => {
+                setNote(text);
+              }}
             />
           </View>
 
           <TouchableOpacity
             style={s.btnSubmit}
-            onPress={() => {DetailBantuan(); AddPenerima()}}
+            onPress={() => {
+              getData();
+              // handlerPenerima();
+              // DetailBantuan()
+            }}
           >
             <Text style={s.textBtnSubmit}>Submit</Text>
           </TouchableOpacity>

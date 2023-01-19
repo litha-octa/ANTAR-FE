@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {View, Text, StyleSheet, Image, StatusBar, SafeAreaView, TouchableOpacity, TextInput, ScrollView} from 'react-native'
 import {
   DefaultProfile,
@@ -11,12 +11,35 @@ import {
 import {colors, fontFam} from '../../Assets/colors';
 import axios from "axios";
 import { BASE_URL } from "../../service";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useIsFocused } from "@react-navigation/native";
 
 const Home =({navigation, route})=>{
+    const isFocused = useIsFocused();
 const [code,setCode]= useState()
+const [riwayat,setRiwayat] = useState(null)
 
-const {datauser} = route.params
-console.log(datauser)
+const [id,setId] = useState()
+const [role, setRole] = useState()
+const [username, setUsername] = useState()
+
+const getData = async () => {
+  try {
+    const result = await AsyncStorage.getItem("id");
+    const result2 = await AsyncStorage.getItem("username");
+    const result3 = await AsyncStorage.getItem("role");
+    if (result !== null) {
+      console.log(result);
+      console.log(result2);
+      console.log(result3);
+      setId(result);
+      setUsername(result2)
+      setRole(result3)
+    }
+  } catch (e) {
+    console.log(e);
+  }
+};
 
 const data = {
   kode : '#DSDBFJDSBFS3746',
@@ -27,15 +50,24 @@ const data = {
   penerima : 'Warga Miskin'
 }
 
-// const searchByCode = (x) => {
-//   axios
-//     .get(`${BASE_URL}/bantuan/${x}`)
-//     .then((res) => {
-//       console.log(res.data);
-//     })
+const getRiwayat = ()=>{
+  axios.get(`${BASE_URL}/bantuan`)
+  .then((res)=>{
+    console.log(res.data.result.data);
+    setRiwayat(res.data.result.data);
+  })
+  .catch((err)=>{
+    console.log(err.response.data)
+  })
+}
 
-//     .catch((err) => console.log(err));
-// };
+
+useEffect(() => {
+  if (isFocused) {
+    getData();
+    getRiwayat();
+  }
+}, [navigation, isFocused]);
 
     const Header = (props)=>{
         return (
@@ -142,13 +174,14 @@ const data = {
             textAlign: "center",
           },
         });
-
+        const [data,setdata] = useState()
         const [code, setCode] = useState();
         const searchByCode = () => {
           axios
             .get(`${BASE_URL}/bantuan/${code}`)
             .then((res) => {
-              console.log(res)
+              console.log(res.data.result.data)
+              setdata(res.data.result.data[0]);
             })
 
             .catch((err) => console.log(err));
@@ -162,18 +195,30 @@ const data = {
             </Text>
             <View style={s.input}>
               <TextInput
-              placeholder="Cari Bantuan"
-              style={{width:'85%'}}
-              value={code}
-              onChangeText={(text)=>setCode(text)}
+                placeholder="Cari Bantuan"
+                style={{ width: "85%" }}
+                value={code}
+                onChangeText={(text) => setCode(text)}
               />
-              <TouchableOpacity 
-              onPress={()=>searchByCode()}
-              style={{width:'15%', backgroundColor:colors.main, borderRadius:30,}}>
-                <Image source={IconNotif} style={{width:40, height:40,alignSelf:'center'}}/>
+              <TouchableOpacity
+                style={{
+                  width: "15%",
+                  backgroundColor: colors.main,
+                  borderRadius: 30,
+                }}
+              >
+                <Image
+                  source={IconNotif}
+                  style={{ width: 40, height: 40, alignSelf: "center" }}
+                />
               </TouchableOpacity>
             </View>
-            <TouchableOpacity style={s.btn}>
+            <TouchableOpacity
+              style={s.btn}
+              onPress={() => {
+                searchByCode();
+              }}
+            >
               <Text style={s.textBtn}>Cari Nomor Bantuan</Text>
             </TouchableOpacity>
           </View>
@@ -190,6 +235,7 @@ const CardBantuan =(props)=>{
     },
     body: {
       width: "98%",
+      height:'auto',
       marginHorizontal: "1%",
       borderWidth: 1,
       borderColor: colors.midGrey,
@@ -202,6 +248,7 @@ const CardBantuan =(props)=>{
       fontSize: 17,
       fontWeight: "bold",
       color: colors.black,
+      textTransform:'capitalize',
     },
     title2: {
       fontFamily: fontFam,
@@ -213,7 +260,7 @@ const CardBantuan =(props)=>{
       padding: "2%",
       borderRadius: 15,
       height: 30,
-      backgroundColor: colors.mustard,
+      backgroundColor: props.bgStatus,
     },
     textStatusCard: {
       fontFamily: fontFam,
@@ -276,35 +323,46 @@ return (
 
 
 return (
-  <SafeAreaView style={{ backgroundColor: colors.main }}>
-    <StatusBar hidden={true} />
-    <ScrollView>
-      <Header
-        onProfile={() => {
-          navigation.navigate("Profile");
-        }}
-        // onNotif={()=>{}}
-        name={datauser?datauser.username:'litha'}
-        role={datauser?datauser.role : 'relawan'}
-      />
+  <SafeAreaView style={{ backgroundColor: colors.main,}}>
+    <StatusBar backgroundColor={colors.main} />
+    <Header
+      onProfile={() => {
+        navigation.navigate("Profile");
+      }}
+      // onNotif={()=>{}}
+      name={username}
+      role={role}
+    />
+    <ScrollView style={{height:'100%'}}>
       <View style={s.body}>
         <LacakContainer />
         <View style={s.historyContainer}>
-          <View style={s.newBantuan}>
-            <Image source={IconBantuan2}
-            style={{
-              width:'30%',
-              height:'35%',
-              alignSelf:'center',
-            }} />
+          <View style={role === "relawan" ? s.newBantuan : { display: "none" }}>
+            <Image
+              source={IconBantuan2}
+              style={{
+                width: "35%",
+                height: "35%",
+                resizeMode: "contain",
+                alignSelf: "center",
+              }}
+            />
             <Text style={s.titleNewBantuan}>Antar</Text>
             <Text style={s.descNewBantuan}>Buat laporan bantuanmu</Text>
-          <TouchableOpacity style={s.btn} onPress={()=>navigation.navigate('NewBantuan')}>
-            <Text style={s.textBtn}>Mulai Antar Bantuan</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={s.btn}
+              onPress={() => navigation.navigate("NewBantuan")}
+            >
+              <Text style={s.textBtn}>Mulai Antar Bantuan</Text>
+            </TouchableOpacity>
           </View>
           <View
-            style={{ display: "flex", flexDirection: "row", width: "100%" , marginTop:'5%'}}
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              width: "100%",
+              marginTop: "5%",
+            }}
           >
             <View style={{ width: "75%" }}>
               <Text style={s.historyTitle}>Riwayat Bantuan</Text>
@@ -318,14 +376,25 @@ return (
               <Text style={s.seeMore}>Lihat Semua</Text>
             </TouchableOpacity>
           </View>
-          <CardBantuan
-            title={data.judul}
-            startDate={data.startDate}
-            endDate={data.endDate}
-            penerima={data.penerima}
-            status={data.status}
-            kode={data.kode}
-          />
+          <View style={{ marginVertical: 10 }}>
+            {riwayat?.map((item) => {
+              return (
+                <CardBantuan
+                  title={item.title}
+                  startDate={item.start_date}
+                  endDate={item.finish_date}
+                  penerima={data.penerima}
+                  status={
+                    item.status === "true"
+                      ? "Terverifikasi"
+                      : "Belum Terverifikasi"
+                  }
+                  bgStatus={item.status === "true" ? "green" : "mustard"}
+                  kode={item.code}
+                />
+              );
+            })}
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -344,9 +413,10 @@ const s = StyleSheet.create({
     backgroundColor: colors.white,
     borderTopStartRadius: 15,
     borderTopEndRadius: 15,
-    padding: 10,
+    paddingHorizontal: 10,
     marginTop: "5%",
     paddingTop: 30,
+    height:'auto',
   },
   historyTitle: {
     fontFamily: fontFam,
@@ -363,7 +433,7 @@ const s = StyleSheet.create({
   newBantuan: {
     backgroundColor: colors.lightGrey,
     width: "96%",
-    height:'45%',
+    height:'40%',
     marginHorizontal: "2%",
     borderRadius: 15,
     padding: 15,
