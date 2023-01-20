@@ -47,7 +47,7 @@ const Login =({navigation, route})=>{
               storeData("username", res.data.result.data.username)
               storeData("role", res.data.result.data.role)
               storeData("id", res.data.result.data.id.toString())
-              if(res.data.result.data.isVerify === 0){
+              if(res.data.result.data.isVerify === 0 || res.data.result.data.isVerify === null){
                 navigation.navigate("Otp", {
                   currentPhone: res.data.result.data.phone,
                 });

@@ -27,6 +27,8 @@ import BtnPlusRed from './btnPlusRed.png'
 import BtnMinRed from './btnMinRed.png'
 import BtnMinGrey from './btnMinGrey.png'
 
+import IconSuccess from './iconSuccess.png';
+
 
 export {
   Logo,
@@ -51,4 +53,5 @@ export {
   BtnMinGrey,
   BtnMinRed,
   BtnPlusRed,
+  IconSuccess,
 };

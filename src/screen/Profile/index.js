@@ -1,19 +1,106 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {View, Text, SafeAreaView,StatusBar,StyleSheet, Image, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView} from 'react-native'
 import { LeftArrowTail, DefaultProfileSquare } from "../../Assets/img";
 import {colors, fontFam} from '../../Assets/colors'
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BASE_URL } from "../../service";
+import * as ImagePicker from "expo-image-picker";
 
 const Profile =({navigation})=>{
 const [username,setUsername] = useState(null)
 const [phone, setPhone] = useState(null)
 const [pass, setPass] = useState(null)
+const [ava,setAva] = useState(null)
+ const [id,setId] = useState()
+
+const [current,setCurrent] = useState({ 
+  username : '',
+  phone :'',
+  avatar:'',
+  isVerify : '',
+  role:'',
+})
+ const getId = async () =>{
+  try {
+    result = await AsyncStorage.getItem("id");
+  if(result !== null ){
+   setId(parseInt(result))
+   getData(result)
+  }
+  }catch(e){
+    console.log(e)
+  }
+}
+
+const pickImage = async () => {
+  // No permissions request is necessary for launching the image library
+  let result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.All,
+    allowsEditing: true,
+    aspect: [4, 3],
+    quality: 1,
+  });
+
+  console.log(result);
+
+  if (!result.canceled) {
+    setAva(result.assets[0].uri);
+  }
+};
+
+
+const getData = (x) => {
+  axios.get (`${BASE_URL}/user/${x}`)
+  .then((res)=>{
+    console.log(res.data.result.data[0])
+    setCurrent(res.data.result.data[0])
+    let data = res.data.result.data[0]
+    setCurrent({
+      ...current,
+      username: data.username,
+      phone: data.phone,
+      isVerify: data.isVerify,
+      role: data.role,
+      avatar: data.avatar,
+    });
+    // setCurrent({...current, phone : data.phone })
+    // setCurrent({...current, isVerify : data.isVerify })
+    // setCurrent({ ...current, role: data.role });
+    // setCurrent({ ...current, avatar: data.avatar });
+  })
+  .catch((err)=>{
+    console.log(err)
+  })
+}
+
+const updateHandler = () =>{
+  let formData = new FormData()
+  username !== null && username !== current.username ? formData.append('username', username) : null;
+  phone !== null && phone !== current.phone
+    ? formData.append("phone", phone)
+    : null;
+  phone !== null && phone !== current.phone ? formData.append('isVerify', 0):null
+ava !== current.avatar && ava !== null? formData.append('avatar', ava) : null
+
+axios.patch(`${BASE_URL}/user/update/${id}`, {
+  headers: { "Access-Control-Allow-Origin": "*" },
+  data:formData,
+})
+.then((res)=>console.log(res.data))
+.catch((err)=>console.error(err.response.data))
+}
+
+useEffect(()=>{
+getId()
+},[])
 
     return (
       <SafeAreaView style={{ backgroundColor: colors.white }}>
         <StatusBar hidden={true} />
         <ScrollView>
           <View style={s.header}>
-            <TouchableOpacity onPress={()=>navigation.goBack()}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
               <Image source={LeftArrowTail} style={s.headerIcon} />
             </TouchableOpacity>
             <Text style={s.headerText}>Profile</Text>
@@ -21,8 +108,8 @@ const [pass, setPass] = useState(null)
           <View style={s.body}>
             <View style={s.container}>
               <Text style={s.titleContainer}>Foto Profile</Text>
-              <Image source={DefaultProfileSquare} style={s.profilPic} />
-              <TouchableOpacity style={s.btnUpload}>
+              <Image source={ava ? ava : DefaultProfileSquare} style={s.profilPic} />
+              <TouchableOpacity style={s.btnUpload} onPress={()=>{pickImage()}}>
                 <Text style={s.textBtnUpload}>Tambah Foto</Text>
               </TouchableOpacity>
               <Text style={s.desc}>
@@ -35,15 +122,41 @@ const [pass, setPass] = useState(null)
                 <Text style={s.inputTitle}>Nama Profile</Text>
                 <TextInput
                   value={username}
+                  defaultValue={current?.username}
                   onChangeText={(text) => setUsername(text)}
-                  style={{ width: "100%" }}
+                  style={{ width: "100%", textTransform: "capitalize" }}
                 />
                 <Text style={s.inputTitle}>No HP</Text>
+                <View
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "row",
+                  }}
+                >
+                  <TextInput
+                    value={phone}
+                    defaultValue={current?.phone}
+                    onChangeText={(text) => setPhone(text)}
+                    keyboardType="numeric"
+                    style={{ width: "70%" }}
+                  />
+                  <View style={current.isVerify === 1 ?
+                  {width :'30%', backgroundColor:'green', borderRadius:15}:
+                  {width :'30%', backgroundColor:colors.mustard, borderRadius:15}
+                }>
+                    <Text style={{color:colors.white, textAlign:'center' }}>
+                      {current.isVerify === 1
+                        ? "Terverifikasi"
+                        : "Tidak Terverifikasi"}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={s.inputTitle}>Peran</Text>
                 <TextInput
-                  value={phone}
-                  onChangeText={(text) => setPhone(text)}
-                  keyboardType="numeric"
-                  style={{ width: "100%" }}
+                  value={current?.role}
+                  editable={false}
+                  style={{ width: "100%", textTransform: "capitalize" }}
                 />
                 <Text style={s.titleContainer}>Keamanan </Text>
                 <Text style={s.inputTitle}>Password</Text>
@@ -54,9 +167,19 @@ const [pass, setPass] = useState(null)
                 />
               </KeyboardAvoidingView>
             </View>
-            <TouchableOpacity style={s.btnUpdate}>
+            <TouchableOpacity
+              style={s.btnUpdate}
+              onPress={() => {
+                updateHandler();
+              }}
+            >
               <Text style={s.textBtnUpdate}>
-                {username !== null || phone !== null || pass !== null
+                {username !== null ||
+                username !== current.username ||
+                phone !== null ||
+                phone !== current.phone ||
+                ava !== null ||
+                ava !== current.avatar
                   ? "Simpan"
                   : "Edit"}
               </Text>

@@ -1,6 +1,7 @@
 import Splash from './Splash';
 import Login from './Login';
 import Otp from './Otp';
+import StatusVerify from './Otp/StatusVerify';
 import Home from './Home';
 import Profile from './Profile';
 import NewBantuan from './NewBantuan';
@@ -14,4 +15,5 @@ export {
     Profile,
     NewBantuan,
     Status,
+    StatusVerify,
 }

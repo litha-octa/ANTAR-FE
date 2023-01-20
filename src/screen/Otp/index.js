@@ -17,7 +17,7 @@ const Otp =({navigation, route})=>{
     const [phone,setPhone] = useState(currentPhone?currentPhone:null)
     const first = phone.charAt(0);
     const formatedPhone = phone.replace(first, "62");
-     console.log(formatedPhone);
+    //  console.log(formatedPhone);
     const [isPhoneFulfilled, setIsPhoneFulfilled] = useState(false)
     const [toOtp,setToOtp] = useState(false)
     const [otp,setOtp]=useState(null)
@@ -72,25 +72,37 @@ const getData = async () => {
 
     const Verifing = ()=>{
       if(otp.toString()!==otpByUser){
-        console.log(typeof(otp))
-        console.log(typeof(otpByUser))
+        Alert.alert('Kode OTP Salah')
       }else{
-        axios.patch(
-          `${BASE_URL}/user/update/${parseInt(id)}`,
-          {headers:{
-            "Access-Control-Allow-Origin": "*",
-          },
-          data:{
-            phone: phone,
-            isVerify: 1,
-          },})
-          .then((res)=>{
-            console.log(res.data)
-            navigation.navigate('Home')
-          })
-          .catch((err)=>{
-            console.error(err.response.data)
-          })
+
+        let formData = new FormData()
+         formData.append('phone', phone);
+         formData.append("isVerify", 1);
+
+        // axios.patch(
+        //   `${BASE_URL}/user/update/${parseInt(id)}`,
+        //   {headers:{
+        //     "Access-Control-Allow-Origin": "*",
+        //   },
+        //   data:formData
+        // })
+
+         var config = {
+           method: "PATCH",
+           body: formData,
+           redirect: "follow",
+         };
+
+         fetch(`${BASE_URL}/user/update/${parseInt(id)}`, config)
+           .then((res) => {
+            if(res.ok=== true){
+              console.log(res.ok)
+              navigation.navigate("StatusVerify", {verified : res.ok.toString()})
+            }
+           })
+           .catch((err) => {
+             console.error(err);
+           });
       }
     }
 
@@ -200,8 +212,8 @@ const getData = async () => {
                     toOtp === false
                       ? (setToOtp(true), getOtp())
                       : 
-                      // Verifing()
-                      navigation.navigate('Home')
+                      Verifing()
+                      // navigation.navigate('Home')
                   }}
                 >
                   <Text style={s.textBtnSubmit}>

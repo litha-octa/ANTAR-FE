@@ -8,6 +8,7 @@ import {
     Profile,
     NewBantuan,
     Status,
+    StatusVerify,
 } from '../screen'
 
 const Stack = createStackNavigator();
@@ -48,6 +49,11 @@ const Router =({navigation})=>{
         <Stack.Screen
           name="Status"
           component={Status}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="StatusVerify"
+          component={StatusVerify}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
