@@ -22,19 +22,15 @@ const [riwayat,setRiwayat] = useState(null)
 const [id,setId] = useState()
 const [role, setRole] = useState()
 const [username, setUsername] = useState()
+const [ava,setAva] = useState()
 
-const getData = async () => {
+const getId = async () => {
   try {
     const result = await AsyncStorage.getItem("id");
-    const result2 = await AsyncStorage.getItem("username");
-    const result3 = await AsyncStorage.getItem("role");
     if (result !== null) {
-      console.log(result);
-      console.log(result2);
-      console.log(result3);
-      setId(result);
-      setUsername(result2)
-      setRole(result3)
+      console.log(result)
+      setId(result)
+      getData(parseInt(result))
     }
   } catch (e) {
     console.log(e);
@@ -64,10 +60,25 @@ const getRiwayat = ()=>{
 
 useEffect(() => {
   if (isFocused) {
-    getData();
+    getId();
     getRiwayat();
   }
 }, [navigation, isFocused]);
+
+const getData = (x) => {
+  axios
+    .get(`${BASE_URL}/user/${x}`)
+    .then((res) => {
+      console.log(res.data.result.data[0]);
+      setUsername(res.data.result.data[0].username);
+      setRole(res.data.result.data[0].role);
+      setAva(res.data.result.data[0].avatar);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 
     const Header = (props)=>{
         return (
@@ -82,7 +93,7 @@ useEffect(() => {
           >
             <TouchableOpacity onPress={props.onProfile}>
               <Image
-                source={DefaultProfile}
+                source={props.img}
                 style={{
                   width: 50,
                   height: 50,
@@ -323,17 +334,17 @@ return (
 
 
 return (
-  <SafeAreaView style={{ backgroundColor: colors.main,}}>
+  <SafeAreaView style={{ backgroundColor: colors.main }}>
     <StatusBar backgroundColor={colors.main} />
     <Header
       onProfile={() => {
         navigation.navigate("Profile");
       }}
-      // onNotif={()=>{}}
+      img={ava ? { uri: ava } : DefaultProfile}
       name={username}
       role={role}
     />
-    <ScrollView style={{height:'100%'}}>
+    <ScrollView style={{ height: "100%" }}>
       <View style={s.body}>
         <LacakContainer />
         <View style={s.historyContainer}>

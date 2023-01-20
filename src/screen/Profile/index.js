@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {View, Text, SafeAreaView,StatusBar,StyleSheet, Image, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView} from 'react-native'
+import {View, Text, SafeAreaView,StatusBar,StyleSheet, Image, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Alert} from 'react-native'
 import { LeftArrowTail, DefaultProfileSquare } from "../../Assets/img";
 import {colors, fontFam} from '../../Assets/colors'
 import axios from "axios";
@@ -23,7 +23,7 @@ const [current,setCurrent] = useState({
 })
  const getId = async () =>{
   try {
-    result = await AsyncStorage.getItem("id");
+    const result = await AsyncStorage.getItem("id");
   if(result !== null ){
    setId(parseInt(result))
    getData(result)
@@ -83,11 +83,22 @@ const updateHandler = () =>{
   phone !== null && phone !== current.phone ? formData.append('isVerify', 0):null
 ava !== current.avatar && ava !== null? formData.append('avatar', ava) : null
 
-axios.patch(`${BASE_URL}/user/update/${id}`, {
-  headers: { "Access-Control-Allow-Origin": "*" },
-  data:formData,
+// axios.patch(`${BASE_URL}/user/update/${id}`, {
+//   headers: { "Access-Control-Allow-Origin": "*" },
+//   data:formData,
+// })
+ var config = {
+       method: 'PATCH',
+       body: formData,
+       redirect: 'follow',
+     };
+     fetch(`${BASE_URL}/user/update/${id}`, config)
+.then((res)=>{
+  if(res.ok === true){
+    Alert.alert('Update Berhasil')
+    navigation.navigate('Home')
+  }
 })
-.then((res)=>console.log(res.data))
 .catch((err)=>console.error(err.response.data))
 }
 
@@ -108,8 +119,24 @@ getId()
           <View style={s.body}>
             <View style={s.container}>
               <Text style={s.titleContainer}>Foto Profile</Text>
-              <Image source={ava ? ava : DefaultProfileSquare} style={s.profilPic} />
-              <TouchableOpacity style={s.btnUpload} onPress={()=>{pickImage()}}>
+              <Image
+                source={DefaultProfileSquare}
+                style={
+                  current.avatar !== null ? { display: "none" } : s.profilPic
+                }
+              />
+              <Image
+                source={current.avatar ? { uri: current.avatar } : { uri: ava }}
+                style={
+                  current.avatar === null ? { display: "none" } : s.profilPic
+                }
+              />
+              <TouchableOpacity
+                style={s.btnUpload}
+                onPress={() => {
+                  pickImage();
+                }}
+              >
                 <Text style={s.textBtnUpload}>Tambah Foto</Text>
               </TouchableOpacity>
               <Text style={s.desc}>
@@ -141,11 +168,22 @@ getId()
                     keyboardType="numeric"
                     style={{ width: "70%" }}
                   />
-                  <View style={current.isVerify === 1 ?
-                  {width :'30%', backgroundColor:'green', borderRadius:15}:
-                  {width :'30%', backgroundColor:colors.mustard, borderRadius:15}
-                }>
-                    <Text style={{color:colors.white, textAlign:'center' }}>
+                  <View
+                    style={
+                      current.isVerify === 1
+                        ? {
+                            width: "30%",
+                            backgroundColor: "green",
+                            borderRadius: 15,
+                          }
+                        : {
+                            width: "30%",
+                            backgroundColor: colors.mustard,
+                            borderRadius: 15,
+                          }
+                    }
+                  >
+                    <Text style={{ color: colors.white, textAlign: "center" }}>
                       {current.isVerify === 1
                         ? "Terverifikasi"
                         : "Tidak Terverifikasi"}
