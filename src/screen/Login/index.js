@@ -15,7 +15,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const Login =({navigation, route})=>{
     const [email, setEmail] = useState(null)
     const [password, setPassword] = useState(null)
-     const [show, setShow] = useState(false);
+     const [show, setShow] = useState(false)
 
     const LoginHandler = ()=>{
       if(email === null || password === null) {
@@ -160,11 +160,11 @@ const Login =({navigation, route})=>{
                 <TouchableOpacity
                   style={s.btnLogin}
                   onPress={() => {
-                    LoginHandler();
+                    // LoginHandler();
                     // navigation.navigate("Otp", {
                     //   currentPhone: phone
                     // });
-                    // navigation.navigate("Home", {datauser: null});
+                    navigation.navigate("Home");
                   }}
                 >
                   <Text style={s.textBtnLogin}>Login</Text>

@@ -28,6 +28,7 @@ import BtnMinRed from './btnMinRed.png'
 import BtnMinGrey from './btnMinGrey.png'
 
 import IconSuccess from './iconSuccess.png';
+import RedProfile from './redProfile.png'
 
 
 export {
@@ -54,4 +55,5 @@ export {
   BtnMinRed,
   BtnPlusRed,
   IconSuccess,
+  RedProfile,
 };

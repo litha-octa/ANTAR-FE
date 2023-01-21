@@ -100,11 +100,11 @@ const NewBantuan = ({navigation})=>{
     // formData.append('selfieWithId', 'test');
     // formData.append('ktp', 'tess')
          
-    var config = {
-       method: 'POST',
-       body: formData,
-       redirect: 'follow',
-     };    
+    // var config = {
+    //    method: 'POST',
+    //    body: formData,
+    //    redirect: 'follow',
+    //  };    
         // axios({
         //   method: "POST",
         //   url: `${BASE_URL}/bantuan/penerima`,
@@ -117,7 +117,7 @@ const NewBantuan = ({navigation})=>{
         //   data: formData,
         // })
 
-        fetch(`${BASE_URL}/bantuan/penerima`,config)
+        axios.post(`${BASE_URL}/bantuan/penerima`,formData)
           .then((res) => {
             console.log("PENERIMA BANTUAN >>>>>>>", res);
             console.log(BASE_URL);
@@ -136,7 +136,6 @@ const relawanHandler = (x) =>{
       "Content-Type": "application/json; charset=UTF-8",
       'Accept': '*/*'
     },
-    withCredentials: false,
     data: {
       code: code,
       id: x,
@@ -161,14 +160,14 @@ const relawanHandler = (x) =>{
     formData.append("status", status);
     formData.append("kategori", kategori);
     formData.append("catatan", note);
-    // formData.append("img", img);
+    formData.append("img", img);
     formData.append("start_date", start);
     formData.append("finish_date", finish);
-    var config = {
-       method: 'POST',
-       body: formData,
-       redirect: 'follow',
-     }; 
+    // var config = {
+    //    method: 'POST',
+    //    body: formData,
+    //    redirect: 'follow',
+    //  }; 
 // axios({
 //   method: "POST",
 //   url: `${BASE_URL}/bantuan/create`,
@@ -177,16 +176,15 @@ const relawanHandler = (x) =>{
 //     "Content-Type": "multipart/form-data",
 //     Accept: "*/*",
 //   },
-//   withCredentials: false,
 //   data: formData,
 // })
 
-fetch(`${BASE_URL}/bantuan/create`,config)
+axios.post(`${BASE_URL}/bantuan/create`,formData)
   .then((res) => {
-    console.log("DETAIL BANTUAN >>>>>>", res.data);
+    console.log("DETAIL BANTUAN >>>>>>", res);
   })
   .catch((err) => {
-    console.log(err.response.data);
+    console.log(err.response.config.adapter.data)
   });
   }
 
@@ -194,13 +192,11 @@ fetch(`${BASE_URL}/bantuan/create`,config)
     try {
       const value = await AsyncStorage.getItem("id");
       if (value !== null) {
-        console.log(typeof(value))
         const int = parseInt(value)
-        console.log(typeof(int))
-        setId(parseInt(value))
+        setId(int)
         DetailBantuan()
         // handlerPenerima()
-        relawanHandler(parseInt(value))
+        relawanHandler(int)
       }
     } catch (e) {
       console.log(e);

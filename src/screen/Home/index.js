@@ -13,14 +13,19 @@ import axios from "axios";
 import { BASE_URL } from "../../service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
+import { RedProfile } from "../../Assets/img";
 
 const Home =({navigation, route})=>{
     const isFocused = useIsFocused();
 const [code,setCode]= useState()
 const [riwayat,setRiwayat] = useState(null)
 
+const [posdaCount,setPosdaCount] = useState(20)
+const [relawanCount, setRelawanCount] = useState(200)
+
 const [id,setId] = useState()
-const [role, setRole] = useState()
+// const [role, setRole] = useState()
+const role = 'kabinda'
 const [username, setUsername] = useState()
 const [ava,setAva] = useState()
 
@@ -78,6 +83,48 @@ const getData = (x) => {
       console.log(err);
     });
 };
+
+const CardKabinda = (props)=>{
+  return (
+    <TouchableOpacity
+    onPress={props.onPress}
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        width: "100%",
+        borderRadius: 15,
+        borderWidth: 2,
+        borderColor: colors.midGrey,
+        padding: 5,
+        marginVertical: 5,
+      }}
+    >
+      <Image source={RedProfile} style={{ width: 50, height: 50 }} />
+      <Text
+        style={{
+          width: "70%",
+          paddingLeft: "4%",
+          textAlignVertical: "center",
+          fontFamily: fontFam,
+          fontSize: 18,
+        }}
+      >
+        {props.name}
+      </Text>
+      <Text
+        style={{
+          width: "10%",
+          textAlignVertical: "center",
+          fontFamily: fontFam,
+          fontSize: 15,
+          fontWeight: "bold",
+        }}
+      >
+        {props.count}
+      </Text>
+    </TouchableOpacity>
+  );
+}
 
 
     const Header = (props)=>{
@@ -367,6 +414,38 @@ return (
               <Text style={s.textBtn}>Mulai Antar Bantuan</Text>
             </TouchableOpacity>
           </View>
+          <View
+            style={
+              role === "kabinda" ? s.kabindaContainer : { display: "none" }
+            }
+          >
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                width: "100%",
+              }}
+            >
+              <Text style={s.historyTitle}>Pelaksana</Text>
+              <Text style={s.seeMore}>Lihat Semua</Text>
+            </View>
+            <CardKabinda
+              onPress={() => {
+                navigation.navigate("List", { name: "Posda" });
+              }}
+              name={"Posda"}
+              count={posdaCount}
+            />
+            <CardKabinda
+              onPress={() => {
+                navigation.navigate("List", { name: "Kabinda" });
+              }}
+              name={"Relawan"}
+              count={relawanCount}
+            />
+          </View>
+
           <View
             style={{
               display: "flex",
