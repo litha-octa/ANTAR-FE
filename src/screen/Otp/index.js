@@ -12,7 +12,7 @@ const Otp =({navigation, route})=>{
   const otpInput = useRef(null);
   
 
-  const {currentPhone} = route.params
+  const {currentPhone,role} = route.params
   const [id, setId] = useState()
     const [phone,setPhone] = useState(currentPhone?currentPhone:null)
     const first = phone.charAt(0);
@@ -93,7 +93,7 @@ const getData = async () => {
            redirect: "follow",
          };
 
-         fetch(`${BASE_URL}/user/update/${parseInt(id)}`, config)
+         fetch(`${BASE_URL}/${role}/${parseInt(id)}`, config)
            .then((res) => {
             if(res.ok=== true){
               console.log(res.ok)

@@ -12,7 +12,33 @@ const [username,setUsername] = useState(null)
 const [phone, setPhone] = useState(null)
 const [pass, setPass] = useState(null)
 const [ava,setAva] = useState(null)
- const [id,setId] = useState()
+const [id,setId] = useState()
+const [role, setRole] = useState();
+
+const clearAll = async () => {
+  try {
+ result = await AsyncStorage.clear();
+  } catch (e) {
+    console.log
+  }
+  console.log("Done.");
+  navigation.navigate('Login')
+};
+
+ const getId = async () => {
+   try {
+     const result = await AsyncStorage.getItem("id");
+     const result2 = await AsyncStorage.getItem("role");
+     if (result !== null) {
+       console.log(result);
+       setId(result);
+       setRole(result2);
+       getData(result2, parseInt(result))
+     }
+   } catch (e) {
+     console.log(e);
+   }
+ };
 
 const [current,setCurrent] = useState({ 
   username : '',
@@ -21,17 +47,6 @@ const [current,setCurrent] = useState({
   isVerify : '',
   role:'',
 })
- const getId = async () =>{
-  try {
-    const result = await AsyncStorage.getItem("id");
-  if(result !== null ){
-   setId(parseInt(result))
-   getData(result)
-  }
-  }catch(e){
-    console.log(e)
-  }
-}
 
 const pickImage = async () => {
   // No permissions request is necessary for launching the image library
@@ -50,8 +65,8 @@ const pickImage = async () => {
 };
 
 
-const getData = (x) => {
-  axios.get (`${BASE_URL}/user/${x}`)
+const getData = (role, id) => {
+  axios.get (`${BASE_URL}/${role}/${id}`)
   .then((res)=>{
     console.log(res.data.result.data[0])
     setCurrent(res.data.result.data[0])
@@ -61,7 +76,6 @@ const getData = (x) => {
       username: data.username,
       phone: data.phone,
       isVerify: data.isVerify,
-      role: data.role,
       avatar: data.avatar,
     });
     // setCurrent({...current, phone : data.phone })
@@ -192,7 +206,7 @@ getId()
                 </View>
                 <Text style={s.inputTitle}>Peran</Text>
                 <TextInput
-                  value={current?.role}
+                  value={role}
                   editable={false}
                   style={{ width: "100%", textTransform: "capitalize" }}
                 />
@@ -221,6 +235,15 @@ getId()
                   ? "Simpan"
                   : "Edit"}
               </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[s.btnUpdate, {marginVertical:20}]}
+              onPress={() => {
+                clearAll();
+              }}
+            >
+              <Text style={s.textBtnUpdate}>Logout</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

@@ -10,6 +10,7 @@ import {
     Status,
     StatusVerify,
     List,
+    Search,
 } from '../screen'
 
 const Stack = createStackNavigator();
@@ -60,6 +61,11 @@ const Router =({navigation})=>{
         <Stack.Screen
           name="List"
           component={List}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Search"
+          component={Search}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

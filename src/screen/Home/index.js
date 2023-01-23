@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {View, Text, StyleSheet, Image, StatusBar, SafeAreaView, TouchableOpacity, TextInput, ScrollView} from 'react-native'
+import {View, Text, StyleSheet, Image, Alert,StatusBar,BackHandler, SafeAreaView, TouchableOpacity, TextInput, ScrollView} from 'react-native'
 import {
   DefaultProfile,
   DefaultProfileSquare,
@@ -17,6 +17,8 @@ import { RedProfile } from "../../Assets/img";
 
 const Home =({navigation, route})=>{
     const isFocused = useIsFocused();
+    // const {role} = route.params
+    // console.log(role)
 const [code,setCode]= useState()
 const [riwayat,setRiwayat] = useState(null)
 
@@ -24,18 +26,29 @@ const [posdaCount,setPosdaCount] = useState(20)
 const [relawanCount, setRelawanCount] = useState(200)
 
 const [id,setId] = useState()
-// const [role, setRole] = useState()
-const role = 'kabinda'
+const [role, setRole] = useState()
+// const role = 'posda'
 const [username, setUsername] = useState()
 const [ava,setAva] = useState()
 
 const getId = async () => {
   try {
     const result = await AsyncStorage.getItem("id");
+    const result2 = await AsyncStorage.getItem("role");
     if (result !== null) {
       console.log(result)
       setId(result)
-      getData(parseInt(result))
+      setRole(result2)
+      getData(result2,parseInt(result))
+      if(result2 === 'posda'){
+      getRelawanbyPosda(parseInt(result));
+      }else if (result2 === 'kabinda'){
+        getRelawanbyKabinda(parseInt(result))
+        getPosdabyKabinda(parseInt(result))
+      }else{
+        null
+      }
+      getRiwayat()
     }
   } catch (e) {
     console.log(e);
@@ -51,8 +64,62 @@ const data = {
   penerima : 'Warga Miskin'
 }
 
+const getRelawanbyPosda = (id) =>{
+  axios.get(`${BASE_URL}/relawan/posda/${id}`)
+  .then((res)=>{
+    console.log(res.data.result.data.length);
+    setRelawanCount(res.data.result.data.length)
+  })
+  .catch((err)=>{console.log(err)})
+}
+const getRelawanbyKabinda = (id) => {
+  axios
+    .get(`${BASE_URL}/relawan/kabinda/${id}`)
+    .then((res) => {
+      console.log(res.data.result.data.length);
+      setRelawanCount(res.data.result.data.length);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+const getPosdabyKabinda = (id) => {
+  axios
+    .get(`${BASE_URL}/posda/kabinda/${id}`)
+    .then((res) => {
+      console.log('POSDA COUNT',res.data.result.data.length);
+      setPosdaCount(res.data.result.data.length);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+useEffect(() => {
+  if (isFocused) {
+    const backAction = () => {
+      Alert.alert("Keluar", "Apa kamu yakin ingin ingin keluar ?", [
+        { text: "Ya", onPress: () => BackHandler.exitApp() },
+        {
+          text: "Tidak",
+          onPress: () => null,
+          style: "cancel",
+        },
+      ]);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }
+}, [navigation, isFocused]);
+
 const getRiwayat = ()=>{
-  axios.get(`${BASE_URL}/bantuan`)
+  axios.get(`${BASE_URL}/new`)
   .then((res)=>{
     console.log(res.data.result.data);
     setRiwayat(res.data.result.data);
@@ -62,21 +129,29 @@ const getRiwayat = ()=>{
   })
 }
 
+const sendApi= (name)=>{
+  if(role === 'kabinda' && name === 'relawan'){
+    return `${BASE_URL}/relawan/kabinda/${id}`;
+  }else if(role==='kabinda' && name === 'posda'){
+    return `${BASE_URL}/posda/kabinda/${id}`;
+  }else{
+     return `${BASE_URL}relawan/posda/${id}`;
+  }
+}
 
 useEffect(() => {
   if (isFocused) {
-    getId();
-    getRiwayat();
+    getId()
+    getRiwayat()
   }
 }, [navigation, isFocused]);
 
-const getData = (x) => {
+const getData = (role, id) => {
   axios
-    .get(`${BASE_URL}/user/${x}`)
+    .get(`${BASE_URL}/${role}/${id}`)
     .then((res) => {
       console.log(res.data.result.data[0]);
       setUsername(res.data.result.data[0].username);
-      setRole(res.data.result.data[0].role);
       setAva(res.data.result.data[0].avatar);
     })
     .catch((err) => {
@@ -236,7 +311,7 @@ const CardKabinda = (props)=>{
         const [code, setCode] = useState();
         const searchByCode = () => {
           axios
-            .get(`${BASE_URL}/bantuan/${code}`)
+            .get(`${BASE_URL}/new/${code}`)
             .then((res) => {
               console.log(res.data.result.data)
               setdata(res.data.result.data[0]);
@@ -257,6 +332,7 @@ const CardKabinda = (props)=>{
                 style={{ width: "85%" }}
                 value={code}
                 onChangeText={(text) => setCode(text)}
+                onFocus={()=>navigation.navigate('Search')}
               />
               <TouchableOpacity
                 style={{
@@ -333,7 +409,7 @@ const CardBantuan =(props)=>{
     },
   });
 return (
-  <View style={s.body}>
+  <TouchableOpacity style={s.body} onPress={props.onPress}>
     <View style={s.row}>
       <Image source={IconBantuan} style={{ width: 40, height: 40 }} />
       <View style={{ width: "65%", paddingHorizontal: "3%" }}>
@@ -376,7 +452,7 @@ return (
         }}/>
       </TouchableOpacity>
     </View>
-  </View>
+  </TouchableOpacity>
 );}
 
 
@@ -409,14 +485,14 @@ return (
             <Text style={s.descNewBantuan}>Buat laporan bantuanmu</Text>
             <TouchableOpacity
               style={s.btn}
-              onPress={() => navigation.navigate("NewBantuan")}
+              onPress={() => navigation.navigate("NewBantuan", {selectedCode : null})}
             >
               <Text style={s.textBtn}>Mulai Antar Bantuan</Text>
             </TouchableOpacity>
           </View>
           <View
             style={
-              role === "kabinda" ? s.kabindaContainer : { display: "none" }
+              role === "kabinda" || role === 'posda'? s.kabindaContainer : { display: "none" }
             }
           >
             <View
@@ -430,16 +506,21 @@ return (
               <Text style={s.historyTitle}>Pelaksana</Text>
               <Text style={s.seeMore}>Lihat Semua</Text>
             </View>
+            <View style={role === 'posda' ? {display :'none'} : null}>
             <CardKabinda
               onPress={() => {
-                navigation.navigate("List", { name: "Posda" });
+                navigation.navigate("List", { name: "Posda" , uri: sendApi('posda')});
               }}
               name={"Posda"}
               count={posdaCount}
             />
+            </View>
             <CardKabinda
               onPress={() => {
-                navigation.navigate("List", { name: "Kabinda" });
+                navigation.navigate("List", {
+                  name: "Relawan",
+                  uri: sendApi("relawan"),
+                });
               }}
               name={"Relawan"}
               count={relawanCount}
@@ -452,6 +533,8 @@ return (
               flexDirection: "row",
               width: "100%",
               marginTop: "5%",
+              height:'auto',
+              position:'relative',
             }}
           >
             <View style={{ width: "75%" }}>
@@ -470,20 +553,24 @@ return (
             {riwayat?.map((item) => {
               return (
                 <CardBantuan
+                onPress={()=>{
+                  navigation.navigate('NewBantuan', {selectedCode: item.code})
+                }}
                   title={item.title}
-                  startDate={item.start_date}
-                  endDate={item.finish_date}
-                  penerima={data.penerima}
+                  startDate={item.start}
+                  endDate={item.finish}
+                  penerima={item.penerima}
                   status={
-                    item.status === "true"
+                    item.status === 1
                       ? "Terverifikasi"
                       : "Belum Terverifikasi"
                   }
-                  bgStatus={item.status === "true" ? "green" : "mustard"}
+                  bgStatus={item.status === 1 ? "green" : "mustard"}
                   kode={item.code}
                 />
               );
             })}
+            <View style={{height:100}}></View>
           </View>
         </View>
       </View>
@@ -506,7 +593,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 10,
     marginTop: "5%",
     paddingTop: 30,
-    height:'auto',
+    height:'100%',
   },
   historyTitle: {
     fontFamily: fontFam,
@@ -523,10 +610,11 @@ const s = StyleSheet.create({
   newBantuan: {
     backgroundColor: colors.lightGrey,
     width: "96%",
-    height:'40%',
+    height:300,
     marginHorizontal: "2%",
     borderRadius: 15,
     padding: 15,
+    marginBottom:20,
   },
   titleNewBantuan: {
     fontFamily: fontFam,

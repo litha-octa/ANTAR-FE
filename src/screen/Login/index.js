@@ -11,11 +11,15 @@ import {colors, fontFam} from '../../Assets/colors'
 import { BASE_URL } from "../../service";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Picker } from "@react-native-picker/picker";
+
 
 const Login =({navigation, route})=>{
     const [email, setEmail] = useState(null)
     const [password, setPassword] = useState(null)
      const [show, setShow] = useState(false)
+
+     const [role, setRole] = useState(null)
 
     const LoginHandler = ()=>{
       if(email === null || password === null) {
@@ -24,7 +28,7 @@ const Login =({navigation, route})=>{
       }else{
          axios({
            method: "POST",
-           url: `${BASE_URL}/login`,
+           url: `${BASE_URL}/${role}/auth`,
            headers: {
              "Access-Control-Allow-Origin": "*",
            },
@@ -45,14 +49,25 @@ const Login =({navigation, route})=>{
                 }
               };
               storeData("username", res.data.result.data.username)
-              storeData("role", res.data.result.data.role)
+              if (
+                typeof res.data.result.data.role !== "string" &&
+                res.data.result.data.role === 3
+              ) {
+                storeData("role", 'posda');
+              } else {
+                storeData("role", res.data.result.data.role);
+              }
               storeData("id", res.data.result.data.id.toString())
               if(res.data.result.data.isVerify === 0 || res.data.result.data.isVerify === null){
                 navigation.navigate("Otp", {
                   currentPhone: res.data.result.data.phone,
+                  role : role,
                 });
               }else{
-                navigation.navigate('Home')
+                setEmail(null)
+                setPassword(null)
+                navigation.navigate('Home',{role:res.data.result.data.role})
+                
               }
             
           }
@@ -67,9 +82,7 @@ const Login =({navigation, route})=>{
 
 
     return (
-      <SafeAreaView
-        style={{ height: '100%', backgroundColor: colors.white }}
-      >
+      <SafeAreaView style={{ height: "100%", backgroundColor: colors.white }}>
         <StatusBar hidden={true} />
         <ScrollView style={{ height: "100%" }}>
           <View style={s.body}>
@@ -83,6 +96,30 @@ const Login =({navigation, route})=>{
 
             <View style={[s.container, { marginTop: "2%" }]}>
               <KeyboardAvoidingView>
+                <Picker
+                  selectedValue={role}
+                  style={{ height: 50, width: "100%" }}
+                  mode={"dialog"}
+                  onValueChange={(itemValue) => {
+                    setRole(itemValue);
+                  }}
+                >
+                  <Picker.Item
+                    label={"Masuk sebagai Kabinda"}
+                    value={"kabinda"}
+                    key={"kabinda"}
+                  />
+                  <Picker.Item
+                    label={"Masuk sebagai Posda"}
+                    value={"posda"}
+                    key={"posda"}
+                  />
+                  <Picker.Item
+                    label={"Masuk sebagai Relawan"}
+                    value={"relawan"}
+                    key={"relawan"}
+                  />
+                </Picker>
                 <Text style={s.title2}>Username</Text>
                 <View
                   style={{
@@ -160,11 +197,11 @@ const Login =({navigation, route})=>{
                 <TouchableOpacity
                   style={s.btnLogin}
                   onPress={() => {
-                    // LoginHandler();
+                    LoginHandler();
                     // navigation.navigate("Otp", {
                     //   currentPhone: phone
                     // });
-                    navigation.navigate("Home");
+                    // navigation.navigate("Home");
                   }}
                 >
                   <Text style={s.textBtnLogin}>Login</Text>

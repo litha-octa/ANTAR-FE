@@ -6,8 +6,10 @@ import {
   StyleSheet, 
   ScrollView, 
   TextInput, 
-  TouchableOpacity, 
+  TouchableOpacity,
+  Alert, 
 } from 'react-native'
+import * as ImagePicker from "expo-image-picker";
 import { 
   FotoKTP, 
   LeftArrowTail , 
@@ -23,18 +25,24 @@ import { BASE_URL } from "../../service";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const NewBantuan = ({navigation})=>{
-  const [penerima,setPenerima]= useState({
-    nik:'',
-    name:'',
-    address:'',
-    phone:'',
-    profession:'',
-    famMember:'',
-    otherMember:'',
-    imgFaceWId:'',
-    imgID:'',
+const NewBantuan = ({navigation, route})=>{
+const {selectedCode} = route.params
+const [currentData,setCurrentData] = useState()
+const [editable,setEditable] = useState(true)
+
+const getDetail = () =>{
+  axios.get(`${BASE_URL}/new/${selectedCode}`)
+  .then((res)=>{
+    console.log('detail : ',res.data.result.data[0])
+    setCurrentData(res.data.result.data[0])
+    if(res.data.result.data[0].status === 1){
+    setEditable(false)
+    }
   })
+  .catch((err)=>{
+    console.log(err)
+  })
+}
 
   const [id,setId] = useState(null)
   const [code, setCode] = useState(null);
@@ -45,31 +53,78 @@ const NewBantuan = ({navigation})=>{
   const [profession, setProfession] = useState(null);
   const [famMember, setFamMember] = useState(null);
   const [otherMember, setOtherMember] = useState(null);
+  const [selfie,setSelfie] = useState(null)
+  const [ktp,setKtp] = useState(null)
+
   
-
-  const [bantuan, setBantuan] = useState({
-    code: "",
-    title: "",
-    id_jenis: "",
-    status: "",
-    kategori: "",
-    catatan: "",
-    img: "",
-    start_date:'',
-    finish_date:'',
-  });
-
   const [title, setTitle] = useState(null)
   const [selectedJenis, setSelectedJenis] = useState(1);
-  const [status,setStatus] = useState(false)
+  const [status,setStatus] = useState(currentData? parseInt(currentData.status) : 0)
   const [kategori,setKategori] = useState(null)
   const [note,setNote] = useState(null)
   const [img,setImg] = useState(null)
   const [start,setStart] = useState(null)
   const [finish, setFinish] = useState(null)
-
+  const [wilayah, setWilayah] = useState(null)
 
   const [jenis,setJenis]= useState(null)
+
+  const uploadKtp = async()=>{
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      console.log(result);
+      setKtp(result.assets[0].uri);
+      // const source={uri: 'data:image/jpeg;base64,' + result.base64}
+      // setSelfie(source);
+    }
+  }
+
+ const upPicWitSticker = async()=>{ 
+   // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      console.log(result)
+      setImg(result.assets[0].uri);
+      // const source={uri: 'data:image/jpeg;base64,' + result.base64}
+      // setSelfie(source);
+    }
+  }
+  const SelfieHandler = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      console.log(result)
+      setSelfie(result.assets[0].uri);
+      // const source={uri: 'data:image/jpeg;base64,' + result.base64}
+      // setSelfie(source);
+    }
+  };
+
+
 
   const getJenis = ()=>{
   axios.get(`${BASE_URL}/jenis`)
@@ -86,122 +141,106 @@ const NewBantuan = ({navigation})=>{
     }else{return}
   },[])
 
-  const handlerPenerima = () =>{
+  useEffect(() => {
+    if (selectedCode !== null) {
+      getDetail()
+    } else {
+      return;
+    }
+  }, []); 
+
+  const DetailBantuan = () => {
     let formData = new FormData();
-    formData.append("code",code)
-    formData.append("nik", nik)
-    formData.append("name", name)
-    formData.append("phone", phone)
-    formData.append("addressInId", address)
-    formData.append("address", address)
-    formData.append("profession", profession)
-    formData.append("familyMember", famMember)
-    formData.append("otherMember", otherMember)
-    // formData.append('selfieWithId', 'test');
-    // formData.append('ktp', 'tess')
-         
-    // var config = {
-    //    method: 'POST',
-    //    body: formData,
-    //    redirect: 'follow',
-    //  };    
-        // axios({
-        //   method: "POST",
-        //   url: `${BASE_URL}/bantuan/penerima`,
-        //   headers: {
-        //     "Access-Control-Allow-Origin": "*",
-        //     "Content-Type": "multipart/form-data",
-        //     "Accept": "*/*",
-        //   },
-        //   withCredentials:false,
-        //   data: formData,
-        // })
+    code !== null || code !== currentData.code? formData.append("code", code) : null;
+    title !== null || title !== currentData.title? formData.append("title", title): null;
+    wilayah !== null || wilayah !== currentData.wilayah ? formData.append("wilayah", wilayah): null;
+    jenis !== null || jenis !== currentData.jenis ? formData.append("jenis", selectedJenis) : null;
+    status !== null || status !== currentData.status ? formData.append("status", status) : null;
+    kategori !== null || kategori !== currentData.kategori ? formData.append("kategori", kategori) : null;
+    note !== null || note !== currentData.catatan ? formData.append("catatan", note) : null;
+    img !== null || img !== currentData.img ? formData.append("img", img) : null;
+    start !== null || start !== currentData.start ? formData.append("start", start) : null;
+    finish !== null || finish !== currentData.finish ? formData.append("finish", finish) : null;
+    nik !== null || nik !== currentData.nik ? formData.append("nik", nik) : null;
+    name !== null || name !== currentData.penerima ? formData.append("penerima", name) : null;
+    phone !== null || phone !== currentData.phone ? formData.append("phone", phone) : null;
+    address !== null || address !== currentData.address ? formData.append("address", address) : null;
+    profession !== null || profession !== currentData.profession ? formData.append("profession", profession) : null;
+    famMember !== null || famMember !== currentData.familyMember ? formData.append("familyMember", famMember) : null;
+    otherMember !== null || otherMember !== currentData.otherMember ? formData.append("otherMember", otherMember) : null;
+    selfie !== null || selfie !== currentData.selfie ? formData.append("selfie", selfie) : null;
+    ktp !== null || ktp !== currentData.ktp ? formData.append("ktp", ktp) : null;
+    id !== null || id !== currentData.relawan
+      ? formData.append("relawan", id)
+      : null;
 
-        axios.post(`${BASE_URL}/bantuan/penerima`,formData)
-          .then((res) => {
-            console.log("PENERIMA BANTUAN >>>>>>>", res);
-            console.log(BASE_URL);
-          })
-          .catch((error) => {
-            console.log(error);
-            console.error(error.response.data);
-          });
-  } 
-const relawanHandler = (x) =>{
-  axios({
-    method: "POST",
-    url: `${BASE_URL}/bantuan/relawan`,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Content-Type": "application/json; charset=UTF-8",
-      'Accept': '*/*'
-    },
-    data: {
-      code: code,
-      id: x,
-    },
-  })
-    .then((res) => {
-      console.log(res.data);
-    })
-    .catch((err) => {
-      console.error(err.response.data);
-    });
-      }
-
-
-
-   
-  const DetailBantuan = ()=>{
-    let formData = new FormData();
-    formData.append("code", code);
-    formData.append("title", title);
-    formData.append("id_jenis", selectedJenis);
-    formData.append("status", status);
-    formData.append("kategori", kategori);
-    formData.append("catatan", note);
-    formData.append("img", img);
-    formData.append("start_date", start);
-    formData.append("finish_date", finish);
-    // var config = {
-    //    method: 'POST',
-    //    body: formData,
-    //    redirect: 'follow',
-    //  }; 
-// axios({
-//   method: "POST",
-//   url: `${BASE_URL}/bantuan/create`,
-//   headers: {
-//     "Access-Control-Allow-Origin": "*",
-//     "Content-Type": "multipart/form-data",
-//     Accept: "*/*",
-//   },
-//   data: formData,
-// })
-
-axios.post(`${BASE_URL}/bantuan/create`,formData)
+    if(selectedCode===null){
+axios({
+  method: "POST",
+  url: `${BASE_URL}/new`,
+  headers: {
+    "Access-Control-Allow-Origin": "*",
+    "Content-Type": "multipart/form-data",
+  },
+  data: formData,
+})
   .then((res) => {
-    console.log("DETAIL BANTUAN >>>>>>", res);
+    console.log("DETAIL BANTUAN >>>>>>", res.data);
+    if (res.data.success === true) {
+      navigation.navigate("Home");
+      Alert.alert("Data berhasil tersimpan");
+
+    } else {
+      Alert.alert("Data tidak berhasil tersimpan");
+    }
   })
   .catch((err) => {
-    console.log(err.response.config.adapter.data)
+    console.log(err.response);
   });
-  }
+    }else{
+axios({
+  method: "PATCH",
+  url: `${BASE_URL}/new/${selectedCode}`,
+  headers: {
+    "Access-Control-Allow-Origin": "*",
+    "Content-Type": "multipart/form-data",
+  },
+  data: formData,
+})
+  .then((res) => {
+    console.log("DETAIL BANTUAN >>>>>>", res.data);
+    if (res.data.success === true) {
+      navigation.navigate("Home");
+      Alert.alert("Data berhasil diperbaharui");
+
+    } else {
+      Alert.alert("Data tidak berhasil tersimpan");
+    }
+  })
+  .catch((err) => {
+    console.log(err.response);
+  });
+    }
+    
+  };
+
+
 
   const getData = async () => {
     try {
       const value = await AsyncStorage.getItem("id");
       if (value !== null) {
         const int = parseInt(value)
+        console.log(int)
         setId(int)
-        DetailBantuan()
-        // handlerPenerima()
-        relawanHandler(int)
       }
     } catch (e) {
       console.log(e);
     }
   };
+  useEffect(()=>{
+getData()
+  },[])
     return (
       <View style={s.body}>
         <ScrollView>
@@ -210,6 +249,18 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
               <Image source={LeftArrowTail} style={{ width: 30, height: 25 }} />
             </TouchableOpacity>
             <Text style={s.headerText}> Isi Detail Laporan</Text>
+          </View>
+          <View style={s.whiteContainer}>
+            <Text style={s.itemData}>Alamat Tujuan Bantuan</Text>
+            <TextInput
+              style={s.inputText}
+              value={wilayah}
+              onChangeText={(text) => {
+                setWilayah(text);
+              }}
+              editable={editable}
+              defaultValue={currentData? currentData.wilayah : null}
+            />
           </View>
           <View style={s.whiteContainer}>
             <Text style={s.titleWhiteCon}>Detail Penerima Bantuan</Text>
@@ -221,6 +272,8 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
               onChangeText={(text) => {
                 setName(text);
               }}
+              editable={editable}
+              defaultValue={currentData ? currentData.penerima : null}
             />
             <Text style={s.itemData}>Alamat Sesuai KTP</Text>
 
@@ -230,6 +283,8 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
               onChangeText={(text) => {
                 setAddress(text);
               }}
+              defaultValue={currentData ? currentData.address : null}
+              editable={editable}
             />
             <Text style={s.itemData}>Pekerjaan</Text>
             <TextInput
@@ -238,6 +293,8 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
               onChangeText={(text) => {
                 setProfession(text);
               }}
+              defaultValue={currentData ? currentData.profession : null}
+              editable={editable}
             />
             <Text style={s.itemData}>No KTP</Text>
             <TextInput
@@ -247,19 +304,23 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
                 setNik(text);
               }}
               keyboardType="numeric"
+              editable={editable}
+              defaultValue={currentData ? currentData?.nik.toString() : null}
             />
             <Text style={s.itemData}>No HP</Text>
             <TextInput
               style={s.inputText}
               value={phone}
-              onChange={(text) => {
+              onChangeText={(text) => {
                 setPhone(text);
               }}
               keyboardType="numeric"
+              defaultValue={currentData ? currentData.phone : null}
+              editable={editable}
             />
             <Text style={s.titleWhiteCon}>Foto Selfie KTP</Text>
             <Image
-              source={UploadFoto}
+              source={selfie !== null ? { uri: selfie } : UploadFoto}
               style={{
                 width: 150,
                 height: 150,
@@ -267,9 +328,14 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
                 alignSelf: "center",
                 marginTop: 20,
                 marginBottom: 10,
+                borderRadius: 10,
               }}
             />
-            <TouchableOpacity style={s.btnUpload}>
+            <TouchableOpacity
+              style={s.btnUpload}
+              onPress={() => SelfieHandler()}
+              disabled={editable}
+            >
               <Text style={s.textBtnUpload}>Tambah Foto</Text>
             </TouchableOpacity>
             <Text style={[s.itemData, { fontSize: 14, textAlign: "center" }]}>
@@ -278,7 +344,7 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
 
             <Text style={s.titleWhiteCon}>Foto KTP </Text>
             <Image
-              source={FotoKTP}
+              source={ktp !== null ? { uri: ktp } : FotoKTP}
               style={{
                 width: 150,
                 height: 150,
@@ -286,9 +352,14 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
                 alignSelf: "center",
                 marginTop: 20,
                 marginBottom: 10,
+                borderRadius: 10,
               }}
             />
-            <TouchableOpacity style={s.btnUpload}>
+            <TouchableOpacity
+              style={s.btnUpload}
+              onPress={() => uploadKtp()}
+              disabled={editable}
+            >
               <Text style={s.textBtnUpload}>Tambah Foto</Text>
             </TouchableOpacity>
             <Text style={[s.itemData, { fontSize: 14, textAlign: "center" }]}>
@@ -299,16 +370,23 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
             <Text style={s.titleWhiteCon}>Detail Bantuan</Text>
 
             <Picker
-              selectedValue={selectedJenis}
+              selectedValue={currentData ? currentData.jenis : selectedJenis}
               style={{ height: 50, width: "50%" }}
               mode={"dialog"}
               onValueChange={(itemValue) => {
                 setSelectedJenis(itemValue);
               }}
+              enabled={editable}
             >
               {jenis
                 ? jenis.map((item) => {
-                    return <Picker.Item label={item.nama} value={item.id} key={item.id}/>;
+                    return (
+                      <Picker.Item
+                        label={item.nama}
+                        value={item.id}
+                        key={item.id}
+                      />
+                    );
                   })
                 : null}
             </Picker>
@@ -320,6 +398,8 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
               onChangeText={(text) => {
                 setCode(text);
               }}
+              defaultValue={currentData ? currentData.code : null}
+              editable={editable}
             />
             <Text style={s.itemData}>Judul Bantuan</Text>
             <TextInput
@@ -328,6 +408,8 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
               onChangeText={(text) => {
                 setTitle(text);
               }}
+              defaultValue={currentData ? currentData.title : null}
+              editable={editable}
             />
             <Text style={s.itemData}>Kategori Bantuan</Text>
             <TextInput
@@ -336,28 +418,32 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
               onChangeText={(text) => {
                 setKategori(text);
               }}
+              defaultValue={currentData ? currentData.kategori : null}
+              editable={editable}
             />
             <Text style={s.titleWhiteCon}>Foto Depan Stiker</Text>
             <View
               style={{ display: "flex", flexDirection: "row", width: "100%" }}
             >
               <Text style={{ width: "30%", marginLeft: "10%" }}>
-                {status === true ? "Terkonfirmasi" : "Non Konfirmasi"}
+                {status === 1 ? "Terkonfirmasi" : "Non Konfirmasi"}
               </Text>
               <Checkbox
+                disabled={editable}
                 style={{ marginHorizontal: 10 }}
                 onValueChange={() => {
-                  setStatus(!status);
+                  if (status === 0) {
+                    setStatus(1);
+                  } else {
+                    setStatus(0);
+                  }
                 }}
-                value={status}
+                value={status === 1 ? true : false}
               />
-              {/* <TextInput 
-              placeholder="status"
-              onChangeText={(text)=>setStatus(text)} value={status}/> */}
             </View>
-            <View style={status === true ? null : { display: "none" }}>
+            <View style={status === 1 ? null : { display: "none" }}>
               <Image
-                source={img!== null ? {uri:img}  : UploadFoto}
+                source={img !== null ? { uri: img } : UploadFoto}
                 style={{
                   width: 150,
                   height: 150,
@@ -368,7 +454,11 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
                 }}
               />
 
-              <TouchableOpacity style={s.btnUpload}>
+              <TouchableOpacity
+                style={s.btnUpload}
+                onPress={() => upPicWitSticker()}
+                disabled={editable}
+              >
                 <Text style={s.textBtnUpload}>Tambah Foto</Text>
               </TouchableOpacity>
               <Text style={[s.itemData, { fontSize: 14, textAlign: "center" }]}>
@@ -378,53 +468,35 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
 
             <View style={s.memberContainer}>
               <Text style={{ width: "55%" }}>Jumlah Anggota Keluarga : </Text>
-              {/* <TouchableOpacity
-                onPress={() => setFamMember(famMember-1 )}
-              >
-                <Image
-                  source={penerima.famMember < 1 ? BtnMinGrey : BtnMinRed}
-                  style={s.btnPlusMin}
-                />
-              </TouchableOpacity> */}
               <TextInput
                 value={famMember}
                 placeholder="Jumlah Anggota Keluarga"
                 onChangeText={(text) => {
                   setFamMember(text);
                 }}
+                editable={editable}
                 keyboardType="numeric"
                 style={{ fontWeight: "bold" }}
+                defaultValue={
+                  currentData ? currentData.familyMember.toString() : null
+                }
               />
-              {/* <TouchableOpacity
-                onPress={() => setFamMember(famMember+1 )}
-              >
-                <Image source={BtnPlusRed} style={s.btnPlusMin} />
-              </TouchableOpacity> */}
             </View>
             <View style={s.memberContainer}>
               <Text style={{ width: "55%" }}>Jumlah Penghuni Baru : </Text>
-              {/* <TouchableOpacity
-                onPress={() => setFamMember(famMember-1 )}
-              >
-                <Image
-                  source={penerima.famMember < 1 ? BtnMinGrey : BtnMinRed}
-                  style={s.btnPlusMin}
-                />
-              </TouchableOpacity> */}
               <TextInput
                 value={otherMember}
                 placeholder="Jumlah Penghuni Baru"
                 onChangeText={(text) => {
                   setOtherMember(text);
                 }}
+                editable={editable}
                 keyboardType="numeric"
                 style={{ fontWeight: "bold" }}
+                defaultValue={
+                  currentData ? currentData.otherMember.toString() : null
+                }
               />
-              {/* <TouchableOpacity
-                onPress={() => setFamMember(famMember+1 )}
-              >
-                <Image source={BtnPlusRed} style={s.btnPlusMin} />
-              </TouchableOpacity> */}
             </View>
 
             <Text style={s.titleWhiteCon}>Catatan</Text>
@@ -434,18 +506,18 @@ axios.post(`${BASE_URL}/bantuan/create`,formData)
               style={s.catatanInput}
               placeholder="Ketuk Untuk Memberikan Catatan"
               value={note}
+              editable={editable}
               onChangeText={(text) => {
                 setNote(text);
               }}
+              defaultValue={currentData ? currentData.catatan : null}
             />
           </View>
 
           <TouchableOpacity
             style={s.btnSubmit}
             onPress={() => {
-              getData();
-              // handlerPenerima();
-              // DetailBantuan()
+              DetailBantuan();
             }}
           >
             <Text style={s.textBtnSubmit}>Submit</Text>

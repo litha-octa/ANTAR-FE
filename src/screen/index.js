@@ -7,6 +7,7 @@ import Profile from './Profile';
 import NewBantuan from './NewBantuan';
 import Status from './NewBantuan/Status';
 import List from './Home/List'
+import Search from './Home/Search'
 
 export {
     Splash,
@@ -18,4 +19,5 @@ export {
     Status,
     StatusVerify,
     List,
+    Search,
 }
