@@ -1,19 +1,37 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import { View, Image, StyleSheet, StatusBar, SafeAreaView } from "react-native";
 import { colors } from "../../Assets/colors";
-import {Logo} from '../../Assets/img'
+import {MiniLogo} from '../../Assets/img'
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Splash = ({navigation})=>{
+
+  const [id, setId] = useState()
+  const getId = async () => {
+    try {
+      const result = await AsyncStorage.getItem("id");
+      if (result !== null) {
+        console.log(result);
+        setId(result)
+        navigation.replace('Home')
+      }else{
+        navigation.replace('Login')
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
 useEffect(()=>{
  setTimeout(() => {
-   navigation.replace("Login");
+  getId();
+  //  navigation.replace("Login");
  }, 3000);
     },[])
     return (
       <SafeAreaView>
         <StatusBar hidden={true}/>
         <View style={s.body}>
-          <Image source={Logo} style={s.img} />
+          <Image source={MiniLogo} style={s.img} />
         </View>
       </SafeAreaView>
     );

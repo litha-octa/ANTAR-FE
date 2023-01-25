@@ -26,9 +26,7 @@ import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const NewBantuan = ({navigation, route})=>{
-const {selectedCode, latitude,longitude} = route.params
-
-console.log(latitude, longitude,)
+const {selectedCode} = route.params
 const [currentData,setCurrentData] = useState()
 const [editable,setEditable] = useState(true)
 
@@ -74,12 +72,6 @@ const getDetail = () =>{
   const [wilayah, setWilayah] = useState(null)
 
   const [jenis,setJenis]= useState(null)
-
-  const [fullfiled, setFullfiled] = useState({
-    detail : false,
-    penerima : false,
-    relawan : false,
-    })
 
   const uploadKtp = async()=>{
     let result = await ImagePicker.launchCameraAsync({
@@ -148,6 +140,28 @@ const getDetail = () =>{
 
   const DetailBantuan = () => {
     let formData = new FormData();
+    // code !== null || code !== currentData.code? formData.append("code", code) : null;
+    // title !== null || title !== currentData.title? formData.append("title", title): null;
+    // wilayah !== null || wilayah !== currentData.wilayah ? formData.append("wilayah", wilayah): null;
+    // jenis !== null || jenis !== currentData.jenis ? formData.append("jenis", selectedJenis) : null;
+    // status !== null || status !== currentData.status ? formData.append("status", status) : null;
+    // kategori !== null || kategori !== currentData.kategori ? formData.append("kategori", kategori) : null;
+    // note !== null || note !== currentData.catatan ? formData.append("catatan", note) : null;
+    // img !== null  ? formData.append("img", img) : null;
+    // start !== null || start !== currentData.start ? formData.append("start", start) : null;
+    // finish !== null || finish !== currentData.finish ? formData.append("finish", finish) : null;
+    // nik !== null || nik !== currentData.nik ? formData.append("nik", nik) : null;
+    // name !== null || name !== currentData.penerima ? formData.append("penerima", name) : null;
+    // phone !== null || phone !== currentData.phone ? formData.append("phone", phone) : null;
+    // address !== null || address !== currentData.address ? formData.append("address", address) : null;
+    // profession !== null || profession !== currentData.profession ? formData.append("profession", profession) : null;
+    // famMember !== null || famMember !== currentData.familyMember ? formData.append("familyMember", famMember) : null;
+    // otherMember !== null || otherMember !== currentData.otherMember ? formData.append("otherMember", otherMember) : null;
+    // selfie !== null  ? formData.append("selfie", selfie) : null;
+    // ktp !== null  ? formData.append("ktp", ktp) : null;
+    // id !== null || id !== currentData.relawan
+    //   ? formData.append("relawan", id)
+    //   : null;
 
     code !== null
       ? formData.append("code", code)
@@ -155,8 +169,11 @@ const getDetail = () =>{
     title !== null 
       ? formData.append("title", title)
       : null;
+    wilayah !== null 
+      ? formData.append("wilayah", wilayah)
+      : null;
     jenis !== null 
-      ? formData.append("id_jenis", selectedJenis)
+      ? formData.append("jenis", selectedJenis)
       : null;
     status !== null 
       ? formData.append("status", status)
@@ -174,14 +191,35 @@ const getDetail = () =>{
     finish !== null 
       ? formData.append("finish", finish)
       : null;
-    latitude !== null
-    ? formData.append('latitude', latitude) : null;
-
-    longitude !== null ? formData.append("longitude", longitude) : null;
-    
+    nik !== null 
+      ? formData.append("nik", nik)
+      : null;
+    name !== null 
+      ? formData.append("penerima", name)
+      : null;
+    phone !== null 
+      ? formData.append("phone", phone)
+      : null;
+    address !== null 
+      ? formData.append("address", address)
+      : null;
+    profession !== null 
+      ? formData.append("profession", profession)
+      : null;
+    famMember !== null 
+      ? formData.append("familyMember", famMember)
+      : null;
+    otherMember !== null 
+      ? formData.append("otherMember", otherMember)
+      : null;
+    selfie !== null ? formData.append("selfie", selfie) : null;
+    ktp !== null ? formData.append("ktp", ktp) : null;
+    id !== null 
+      ? formData.append("relawan", id)
+      : null;
     axios({
       method: "POST",
-      url: `${BASE_URL}/bantuan/create`,
+      url: `${BASE_URL}/new`,
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "multipart/form-data",
@@ -190,88 +228,35 @@ const getDetail = () =>{
     })
       .then((res) => {
         console.log("DETAIL BANTUAN >>>>>>", res.data);
-        if(res.data.success === true){
-          setFullfiled({detail : true})
-        }
       })
       .catch((err) => {
-        console.log(err.response.config.data);
-      })
-     };
+        console.log(err.response);
+      });
+    //     }else{
+    // axios({
+    //   method: "PATCH",
+    //   url: `${BASE_URL}/new/${selectedCode}`,
+    //   headers: {
+    //     "Access-Control-Allow-Origin": "*",
+    //     "Content-Type": "multipart/form-data",
+    //   },
+    //   data: formData,
+    // })
+    //   .then((res) => {
+    //     console.log("DETAIL BANTUAN >>>>>>", res.data);
+    //     if (res.data.success === true) {
+    //       navigation.navigate("Home");
+    //       Alert.alert("Data berhasil diperbaharui");
 
-
-       const SendPenerima= () =>{
-         let formData = new FormData();
-
-code !== null ? formData.append("code", code) : null;
-         nik !== null
-           ? formData.append("nik", nik)
-           : null;
-         name !== null
-           ? formData.append("name", name)
-           : null;
-         phone !== null
-           ? formData.append("phone", phone)
-           : null;
-         address !== null
-           ? formData.append("address", address)
-           : null;
-         profession !== null
-           ? formData.append("profession", profession)
-           : null;
-         famMember !== null
-           ? formData.append("familyMember", famMember)
-           : null;
-         otherMember !== null
-           ? formData.append("otherMember", otherMember)
-           : null;
-         selfie !== null ? formData.append("selfieWithId", selfie) : null;
-         ktp !== null ? formData.append("ktp", ktp) : null;
-        //  id !== null
-        //    ? formData.append("relawan", id)
-        //    : null;
-         axios({
-           method: "POST",
-           url: `${BASE_URL}/bantuan/penerima`,
-           headers: {
-             "Access-Control-Allow-Origin": "*",
-             "Content-Type": "multipart/form-data",
-           },
-           data: formData,
-         })
-           .then((res) => {
-             console.log("DETAIL BANTUAN >>>>>>", res.data);
-             if (res.data.success === true) {
-                 setFullfiled({ penerima: true });
-             } else {
-               Alert.alert("Data tidak berhasil tersimpan");
-             }
-           })
-           .catch((err) => {
-             console.log(err.response);
-           });
-       };
-
-       const SendRelawan = () =>{
-        axios.post(`${BASE_URL}/bantuan/relawan`, {
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-          },
-          data:{
-            code : code,
-            id : id,
-          }
-        })
-        .then((res)=>{
-          console.log(res.data)
-           if (res.data.success === true) {
-             setFullfiled({ relawan: true });
-           }
-        })
-        .catch((err)=>{
-          console.log(err)
-        })
-       }
+    //     } else {
+    //       Alert.alert("Data tidak berhasil tersimpan");
+    //     }
+    //   })
+    //   .catch((err) => {
+    //     console.log(err.response);
+    //   });
+    //     }
+  };
 
 
 
@@ -308,6 +293,7 @@ getData()
                 setWilayah(text);
               }}
               editable={editable}
+              defaultValue={currentData !== null ? currentData.wilayah : null}
             />
           </View>
           <View style={s.whiteContainer}>
@@ -321,6 +307,7 @@ getData()
                 setName(text);
               }}
               editable={editable}
+              defaultValue={currentData !== null ? currentData.penerima : null}
             />
             <Text style={s.itemData}>Alamat Sesuai KTP</Text>
 
@@ -330,6 +317,7 @@ getData()
               onChangeText={(text) => {
                 setAddress(text);
               }}
+              defaultValue={currentData !== null ? currentData.address : null}
               editable={editable}
             />
             <Text style={s.itemData}>Pekerjaan</Text>
@@ -339,6 +327,9 @@ getData()
               onChangeText={(text) => {
                 setProfession(text);
               }}
+              defaultValue={
+                currentData !== null ? currentData.profession : null
+              }
               editable={editable}
             />
             <Text style={s.itemData}>No KTP</Text>
@@ -350,7 +341,9 @@ getData()
               }}
               keyboardType="numeric"
               editable={editable}
-              
+              defaultValue={
+                currentData !== null ? currentData?.nik.toString() : null
+              }
             />
             <Text style={s.itemData}>No HP</Text>
             <TextInput
@@ -360,6 +353,7 @@ getData()
                 setPhone(text);
               }}
               keyboardType="numeric"
+              defaultValue={currentData !== null ? currentData.phone : null}
               editable={editable}
             />
             <Text style={s.titleWhiteCon}>Foto Selfie KTP</Text>
@@ -415,7 +409,7 @@ getData()
 
             <Picker
               selectedValue={
-                selectedJenis
+                currentData !== null ? currentData.jenis : selectedJenis
               }
               style={{ height: 50, width: "50%" }}
               mode={"dialog"}
@@ -444,6 +438,9 @@ getData()
               onChangeText={(text) => {
                 setCode(text);
               }}
+              defaultValue={
+                currentData !== null ? currentData.code.tiString() : null
+              }
               editable={editable}
             />
             <Text style={s.itemData}>Judul Bantuan</Text>
@@ -453,6 +450,7 @@ getData()
               onChangeText={(text) => {
                 setTitle(text);
               }}
+              defaultValue={currentData !== null ? currentData.title : null}
               editable={editable}
             />
             <Text style={s.itemData}>Kategori Bantuan</Text>
@@ -462,6 +460,7 @@ getData()
               onChangeText={(text) => {
                 setKategori(text);
               }}
+              defaultValue={currentData !== null ? currentData.kategori : null}
               editable={editable}
             />
             <Text style={s.titleWhiteCon}>Foto Depan Stiker</Text>
@@ -520,7 +519,11 @@ getData()
                 editable={editable}
                 keyboardType="numeric"
                 style={{ fontWeight: "bold" }}
-                
+                defaultValue={
+                  currentData !== null
+                    ? currentData.familyMember.toString()
+                    : null
+                }
               />
             </View>
             <View style={s.memberContainer}>
@@ -534,7 +537,11 @@ getData()
                 editable={editable}
                 keyboardType="numeric"
                 style={{ fontWeight: "bold" }}
-                
+                defaultValue={
+                  currentData !== null
+                    ? currentData.otherMember.toString()
+                    : null
+                }
               />
             </View>
 
@@ -549,26 +556,14 @@ getData()
               onChangeText={(text) => {
                 setNote(text);
               }}
+              defaultValue={currentData !== null ? currentData.catatan : null}
             />
           </View>
 
           <TouchableOpacity
             style={s.btnSubmit}
             onPress={() => {
-              SendPenerima();
               DetailBantuan();
-              SendPenerima()
-
-              if(fullfiled.detail === true &&
-                fullfiled.penerima ===true &&
-                fullfiled.relawan === true
-                )
-                {
-                  navigation.navigate('Home')
-                  Alert.alert('Data Berhsil Tersimpan')
-                }
-              
-
             }}
           >
             <Text style={s.textBtnSubmit}>Submit</Text>

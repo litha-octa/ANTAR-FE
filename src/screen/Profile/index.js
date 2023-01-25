@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {View, Text, SafeAreaView,StatusBar,StyleSheet, Image, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Alert} from 'react-native'
+import {View, Text, SafeAreaView,StatusBar,Linking, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Alert} from 'react-native'
 import { LeftArrowTail, DefaultProfileSquare } from "../../Assets/img";
 import {colors, fontFam} from '../../Assets/colors'
 import axios from "axios";
@@ -28,12 +28,10 @@ const clearAll = async () => {
  const getId = async () => {
    try {
      const result = await AsyncStorage.getItem("id");
-     const result2 = await AsyncStorage.getItem("role");
      if (result !== null) {
        console.log(result);
        setId(result);
-       setRole(result2);
-       getData(result2, parseInt(result))
+       getData(parseInt(result))
      }
    } catch (e) {
      console.log(e);
@@ -65,11 +63,12 @@ const pickImage = async () => {
 };
 
 
-const getData = (role, id) => {
-  axios.get (`${BASE_URL}/${role}/${id}`)
+const getData = (id) => {
+  axios.get (`${BASE_URL}/user/${id}`)
   .then((res)=>{
     console.log(res.data.result.data[0])
     setCurrent(res.data.result.data[0])
+    setRole(res.data.result.data[0].role)
     let data = res.data.result.data[0]
     setCurrent({
       ...current,
@@ -206,17 +205,22 @@ getId()
                 </View>
                 <Text style={s.inputTitle}>Peran</Text>
                 <TextInput
-                  value={role}
+                  value={role ? role : current.role}
                   editable={false}
                   style={{ width: "100%", textTransform: "capitalize" }}
                 />
                 <Text style={s.titleContainer}>Keamanan </Text>
                 <Text style={s.inputTitle}>Password</Text>
-                <TextInput
-                  value={pass}
-                  onChangeText={(text) => setPass(text)}
-                  style={{ width: "100%" }}
-                />
+                <TouchableOpacity
+                  style={s.btnUpdate}
+                  onPress={() =>
+                    Linking.openURL(
+                      "https://api.whatsapp.com/send/?phone=6287780929728&text=Hai%20Admin,%20Saya%20minta%20bantuan%20untuk%20ubah%20password%20akun%20Antar%20saya&type=phone_number"
+                    )
+                  }
+                >
+                  <Text style={s.textBtnUpdate}>Request Ganti Password</Text>
+                </TouchableOpacity>
               </KeyboardAvoidingView>
             </View>
             <TouchableOpacity
@@ -238,7 +242,7 @@ getId()
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[s.btnUpdate, {marginVertical:20}]}
+              style={[s.btnUpdate, { marginVertical: 20 }]}
               onPress={() => {
                 clearAll();
               }}
@@ -288,6 +292,7 @@ const s = StyleSheet.create({
     width: 130,
     height: 130,
     alignSelf: "center",
+    borderRadius:15
   },
   titleContainer: {
     fontFamily: fontFam,

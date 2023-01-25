@@ -7,18 +7,18 @@ import {
   IconBantuan,
   RightRedArrowTail,
   IconBantuan2,
+  IconSearch,
+  RedProfile,
 } from "../../Assets/img";
+import {CardBantuan} from '../../component'
 import {colors, fontFam} from '../../Assets/colors';
 import axios from "axios";
 import { BASE_URL } from "../../service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
-import { RedProfile } from "../../Assets/img";
 
 const Home =({navigation, route})=>{
     const isFocused = useIsFocused();
-    // const {role} = route.params
-    // console.log(role)
 const [code,setCode]= useState()
 const [riwayat,setRiwayat] = useState(null)
 
@@ -27,27 +27,16 @@ const [relawanCount, setRelawanCount] = useState(200)
 
 const [id,setId] = useState()
 const [role, setRole] = useState()
-// const role = 'posda'
 const [username, setUsername] = useState()
 const [ava,setAva] = useState()
 
 const getId = async () => {
   try {
     const result = await AsyncStorage.getItem("id");
-    const result2 = await AsyncStorage.getItem("role");
     if (result !== null) {
       console.log(result)
       setId(result)
-      setRole(result2)
-      getData(result2,parseInt(result))
-      if(result2 === 'posda'){
-      getRelawanbyPosda(parseInt(result));
-      }else if (result2 === 'kabinda'){
-        getRelawanbyKabinda(parseInt(result))
-        getPosdabyKabinda(parseInt(result))
-      }else{
-        null
-      }
+      getData(parseInt(result))
       getRiwayat()
     }
   } catch (e) {
@@ -119,7 +108,7 @@ useEffect(() => {
 }, [navigation, isFocused]);
 
 const getRiwayat = ()=>{
-  axios.get(`${BASE_URL}/new`)
+  axios.get(`${BASE_URL}/bantuan`)
   .then((res)=>{
     console.log(res.data.result.data);
     setRiwayat(res.data.result.data);
@@ -146,13 +135,23 @@ useEffect(() => {
   }
 }, [navigation, isFocused]);
 
-const getData = (role, id) => {
+const getData = ( id) => {
   axios
-    .get(`${BASE_URL}/${role}/${id}`)
+    .get(`${BASE_URL}/user/${id}`)
     .then((res) => {
       console.log(res.data.result.data[0]);
       setUsername(res.data.result.data[0].username);
+      setRole(res.data.result.data[0].role);
       setAva(res.data.result.data[0].avatar);
+
+      if (res.data.result.data[0].role === "posda") {
+        getRelawanbyPosda(res.data.result.data[0].id);
+      } else if (res.data.result.data[0].role === "kabinda") {
+        getRelawanbyKabinda(res.data.result.data[0].id);
+        getPosdabyKabinda(res.data.result.data[0].id);
+      } else {
+        null;
+      }
     })
     .catch((err) => {
       console.log(err);
@@ -220,6 +219,7 @@ const CardKabinda = (props)=>{
                   width: 50,
                   height: 50,
                   marginRight: 10,
+                  borderRadius: 30,
                 }}
               />
             </TouchableOpacity>
@@ -259,7 +259,7 @@ const CardKabinda = (props)=>{
         );
     }
 
-    const LacakContainer = (props)=>{
+    const LacakContainer = ({navigation,route})=>{
         const s = StyleSheet.create({
           body: {
             width: "90%",
@@ -307,14 +307,14 @@ const CardKabinda = (props)=>{
             textAlign: "center",
           },
         });
-        const [data,setdata] = useState()
+        const [data,setData] = useState(null)
         const [code, setCode] = useState();
         const searchByCode = () => {
           axios
             .get(`${BASE_URL}/new/${code}`)
             .then((res) => {
               console.log(res.data.result.data)
-              setdata(res.data.result.data[0]);
+              setData(res.data.result.data[0]);
             })
 
             .catch((err) => console.log(err));
@@ -327,13 +327,12 @@ const CardKabinda = (props)=>{
               silahkan cari bantuan melalui judul atau kode bantuan
             </Text>
             <View style={s.input}>
-              <TextInput
-                placeholder="Cari Bantuan"
-                style={{ width: "85%" }}
-                value={code}
-                onChangeText={(text) => setCode(text)}
-                onFocus={()=>navigation.navigate('Search')}
-              />
+                <TextInput
+                  placeholder="Cari Bantuan"
+                  style={{ width: "85%" }}
+                  value={code}
+                  onChangeText={(text) => setCode(text)}
+                />
               <TouchableOpacity
                 style={{
                   width: "15%",
@@ -342,7 +341,7 @@ const CardKabinda = (props)=>{
                 }}
               >
                 <Image
-                  source={IconNotif}
+                  source={IconSearch}
                   style={{ width: 40, height: 40, alignSelf: "center" }}
                 />
               </TouchableOpacity>
@@ -350,110 +349,35 @@ const CardKabinda = (props)=>{
             <TouchableOpacity
               style={s.btn}
               onPress={() => {
-                searchByCode();
+                searchByCode()
               }}
             >
               <Text style={s.textBtn}>Cari Nomor Bantuan</Text>
             </TouchableOpacity>
+            {data?.map((item)=>{
+              return(
+<CardBantuan
+                onPress={()=>{
+                  navigation.navigate('NewBantuan', {selectedCode: item.code})
+                }}
+                  title={data.title}
+                  startDate={data.start}
+                  endDate={data.finish}
+                  penerima={data.penerima}
+                  status={
+                    data.status === 1
+                      ? "Terverifikasi"
+                      : "Belum Terverifikasi"
+                  }
+                  bgStatus={data.status === 1 ? "green" : "mustard"}
+                  kode={data.code}
+                />
+              )
+            })}
           </View>
         );
     }
 
-const CardBantuan =(props)=>{
-  const s = StyleSheet.create({
-    row: {
-      display: "flex",
-      flexDirection: "row",
-      width: "100%",
-      marginVertical: 10,
-    },
-    body: {
-      width: "98%",
-      height:'auto',
-      marginHorizontal: "1%",
-      borderWidth: 1,
-      borderColor: colors.midGrey,
-      borderRadius: 15,
-      marginVertical: 10,
-      padding: 15,
-    },
-    title: {
-      fontFamily: fontFam,
-      fontSize: 17,
-      fontWeight: "bold",
-      color: colors.black,
-      textTransform:'capitalize',
-    },
-    title2: {
-      fontFamily: fontFam,
-      fontSize: 13,
-      color: colors.grey,
-    },
-    statusCard: {
-      width: "25%",
-      padding: "2%",
-      borderRadius: 15,
-      height: 30,
-      backgroundColor: props.bgStatus,
-    },
-    textStatusCard: {
-      fontFamily: fontFam,
-      fontSize: 12,
-      color: colors.white,
-    },
-    detailText: {
-      fontFamily: fontFam,
-      fontSize: 13,
-      fontWeight: "bold",
-      color: colors.main,
-    },
-  });
-return (
-  <TouchableOpacity style={s.body} onPress={props.onPress}>
-    <View style={s.row}>
-      <Image source={IconBantuan} style={{ width: 40, height: 40 }} />
-      <View style={{ width: "65%", paddingHorizontal: "3%" }}>
-        <Text style={s.title}>{props.title}</Text>
-        <Text style={s.title2}>{props.startDate}</Text>
-      </View>
-      <View style={s.statusCard}>
-        <Text style={s.textStatusCard}>{props.status}</Text>
-      </View>
-    </View>
-    <View style={s.row}>
-      <View style={{ width: "50%" }}>
-        <Text style={s.title}>{props.endDate}</Text>
-        <Text style={s.title2}>Estimasi Sampai</Text>
-      </View>
-      <View style={{ width: "50%" }}>
-        <Text style={s.title}>{props.kode}</Text>
-        <Text style={s.title2}>Kode Bantuan</Text>
-      </View>
-    </View>
-    <View style={s.row}>
-      <Image source={DefaultProfileSquare} style={{ width: 50, height: 50 }} />
-      <View style={{ width: "50%", marginLeft:'5%' }}>
-        <Text style={s.title}>{props.penerima}</Text>
-        <Text style={s.title2}>Penerima bantuan</Text>
-      </View>
-      <TouchableOpacity
-      style={{
-        display:'flex',
-        flexDirection:'row',
-        width:'35%',
-        justifyContent:'center',
-        paddingTop:10,
-      }}>
-        <Text style={s.detailText}>Lihat Detail</Text>
-        <Image source={RightRedArrowTail}
-        style={{
-        width : 20,
-        height:20,
-        }}/>
-      </TouchableOpacity>
-    </View>
-  </TouchableOpacity>
-);}
 
 
 return (
@@ -463,7 +387,7 @@ return (
       onProfile={() => {
         navigation.navigate("Profile");
       }}
-      img={ava ? { uri: ava } : DefaultProfile}
+      img={ava !== 'null' || ava !== null ? { uri: ava } : DefaultProfile}
       name={username}
       role={role}
     />
@@ -485,7 +409,7 @@ return (
             <Text style={s.descNewBantuan}>Buat laporan bantuanmu</Text>
             <TouchableOpacity
               style={s.btn}
-              onPress={() => navigation.navigate("NewBantuan", {selectedCode : null})}
+              onPress={() => navigation.navigate("Location")}
             >
               <Text style={s.textBtn}>Mulai Antar Bantuan</Text>
             </TouchableOpacity>

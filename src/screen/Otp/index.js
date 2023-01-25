@@ -93,7 +93,7 @@ const getData = async () => {
            redirect: "follow",
          };
 
-         fetch(`${BASE_URL}/${role}/${parseInt(id)}`, config)
+         fetch(`${BASE_URL}/user/update/${parseInt(id)}`, config)
            .then((res) => {
             if(res.ok=== true){
               console.log(res.ok)
